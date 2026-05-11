@@ -41,7 +41,6 @@ export default function CreatePostContent() {
   const overLimit = remaining < 0;
   const isNearLimit = remaining <= 40 && !overLimit;
 
-  // Auto-resize textarea
   useEffect(() => {
     const el = textareaRef.current;
     if (el) {
@@ -113,7 +112,6 @@ export default function CreatePostContent() {
     );
   }
 
-  // Process content for character coloring
   const processedContent = (text: string) => {
     if (!text) return null;
     return text.split(' ').map((word, i) => {
