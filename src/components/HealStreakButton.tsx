@@ -35,7 +35,6 @@ export default function HealStreakButton() {
         onFinish: (data: any) => {
           console.log('Streak healed!', data.txId);
           setState('success');
-          // Refresh stats
           setTimeout(() => {
             dispatch(fetchOnChainStats(address) as any);
             setState('idle');
