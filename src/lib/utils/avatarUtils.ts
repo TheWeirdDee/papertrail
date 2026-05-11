@@ -5,7 +5,6 @@
 export function getProfileGradient(address: string | null): string {
   if (!address) return 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)';
   
-  // Use sum of char codes to pick a variant
   const seed = address.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
   
   const variants = [
