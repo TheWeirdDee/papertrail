@@ -60,20 +60,16 @@ export default function DashboardContent() {
   
   useEffect(() => {
     setIsMounted(true);
-    // 1. Ensure we have activity data for the charts
     if (feed.length === 0) {
       dispatch(fetchPostsFromSupabase() as any);
     }
     
-    // 2. FETCH REAL ON-CHAIN STATS
     if (isConnected && address) {
       dispatch(fetchOnChainStats(address) as any);
     }
   }, [dispatch, isConnected, address]);
 
   useEffect(() => {
-    // Only show modal if: connected, no username set on-chain, and user hasn't dismissed it
-    // Wait until loading is finished to decide whether to show onboarding
     if (!isLoading && isConnected && !username && !dismissed.current) {
       setShowOnboarding(true);
     } else if (username) {
@@ -128,7 +124,6 @@ export default function DashboardContent() {
     ? "Loading profile..." 
     : (username || addressShort);
 
-  // 1. HYDRATION GUARD: Don't show anything (or a simple loader) until we know if we're in the browser
   if (!isMounted) {
     return (
       <div className="min-h-[80vh] flex flex-col items-center justify-center p-4">
@@ -137,7 +132,6 @@ export default function DashboardContent() {
     );
   }
 
-  // 2. LOADING STATE GUARD: Prevent "Locked" screen from flashing on refresh
   if (isLoading && !isConnected) {
     return (
       <div className="min-h-[80vh] flex flex-col items-center justify-center p-4">
@@ -147,10 +141,6 @@ export default function DashboardContent() {
     );
   }
 
-  // 3. UNAUTHORIZED STATE
-  // REMOVED: No longer blocking guests from viewing the dashboard layout.
-  // Instead, the dashboard will render with guest defaults (0 stats) and 
-  // action buttons will trigger a login prompts.
 
   return (
     <div className="p-6 lg:p-10 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 max-w-[1600px] mx-auto">
