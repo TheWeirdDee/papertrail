@@ -9,7 +9,6 @@ export async function GET(req: NextRequest) {
 
     let query = supabase.from('profiles').select('*');
 
-    // Determine sorting logic
     if (type === 'streak') {
       query = query.order('streak', { ascending: false });
     } else if (type === 'points') {
