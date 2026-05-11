@@ -21,12 +21,10 @@ export default function FeedContent() {
   
   const observer = useRef<IntersectionObserver | null>(null);
 
-  // 1. Initial Fetch
   useEffect(() => {
     dispatch(fetchPostsFromSupabase());
   }, [dispatch]);
 
-  // 2. Real-time Subscription
   useEffect(() => {
     if (!supabase) return;
 
@@ -62,7 +60,6 @@ export default function FeedContent() {
     };
   }, [dispatch]);
 
-  // 3. Infinite Scroll (Intersection Observer)
   const lastPostRef = useCallback((node: HTMLDivElement) => {
     if (isLoading || !hasMore) return;
     if (observer.current) observer.current.disconnect();
@@ -83,7 +80,6 @@ export default function FeedContent() {
     { name: 'Global', icon: Globe },
   ];
 
-  // Sorting/Filtering Logic
   const getDisplayFeed = () => {
     let list = [...feed];
     
