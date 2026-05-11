@@ -9,7 +9,6 @@ export default function AnalyticsGraph() {
   const { streak, points, address, isPro, isOptimisticPro } = useSelector((state: RootState) => state.user);
   const feed = useSelector((state: RootState) => state.posts.feed);
   
-  // Filter for this user's posts
   const userPosts = useMemo(() => {
     const lowerAddress = address?.toLowerCase();
     return feed.filter(p => p.authorAddress?.toLowerCase() === lowerAddress);
@@ -17,13 +16,10 @@ export default function AnalyticsGraph() {
 
   const hasActivity = userPosts.length > 0 || streak > 0;
 
-  // Build a realistic activity trail from the user's actual streak.
-  // Each day they've been active shows a GM. Days before the streak are zeroed.
   const chartPoints = useMemo(() => {
     const days = 30;
     const data: { day: number; active: boolean; label: string }[] = [];
 
-    // Get a set of dates where user has made a post (ISO Date format: YYYY-MM-DD)
     const postDates = new Set(userPosts.map(p => 
       new Date(p.timestamp).toISOString().split('T')[0]
     ));
@@ -34,8 +30,6 @@ export default function AnalyticsGraph() {
       const isoDate = d.toISOString().split('T')[0];
       const label = d.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' });
       
-      // Real activity: Check if user posted on this date OR if it is within their current streak
-      // (This ensures the 2d streak shows 2 GMs immediately)
       let active = postDates.has(isoDate) || i < (streak || 0);
 
       data.push({ day: days - i, active, label });
@@ -46,7 +40,6 @@ export default function AnalyticsGraph() {
   const activeCount = chartPoints.filter(p => p.active).length;
   const totalDays = chartPoints.length;
 
-  // Build grid Y positions — active = low Y (top = high on chart), idle = high Y (bottom)
   const svgPoints = chartPoints.map((p, i) => ({
     x: (i / (chartPoints.length - 1)) * 100,
     y: p.active ? 20 : 85,
@@ -73,7 +66,6 @@ export default function AnalyticsGraph() {
       </div>
 
       {!hasActivity ? (
-        // Empty state
         <div className="h-40 flex flex-col items-center justify-center gap-3 border border-dashed border-white/5 rounded-2xl">
           <div className="h-10 w-10 rounded-full bg-white/[0.03] flex items-center justify-center">
             <TrendingUp className="h-5 w-5 text-gray-700" />
