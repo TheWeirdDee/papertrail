@@ -27,7 +27,6 @@ export default function ProfileSidebar({ activeTab, onTabChange }: ProfileSideba
   const handleDisconnect = () => {
     if (confirm('Are you sure you want to disconnect your wallet? All local session data will be cleared.')) {
       dispatch(logout());
-      // In a real Stacks app, you'd also call userSession.signUserOut() here
       router.push('/');
     }
   };
