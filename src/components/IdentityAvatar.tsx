@@ -15,8 +15,6 @@ interface IdentityAvatarProps {
 export default function IdentityAvatar({ address, src, size = 'md', className = '' }: IdentityAvatarProps) {
   const { address: currentUserAddress, avatar: currentUserAvatar } = useSelector((state: RootState) => state.user);
   
-  // Robust Fallback: If this is the current user's address, and no specific src was passed,
-  // use the avatar from our global state (which is initialized from localStorage).
   const finalSrc = src || (address && currentUserAddress && address === currentUserAddress ? currentUserAvatar : null);
 
   const sizeClasses = {
