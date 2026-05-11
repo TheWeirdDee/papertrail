@@ -11,7 +11,6 @@ export async function GET(req: NextRequest) {
     const authHeader = req.headers.get('Authorization');
     let sessionAddress: string | null = null;
 
-    // 1. Check for authenticated user
     if (authHeader?.startsWith('Bearer ')) {
       const token = authHeader.split(' ')[1];
       const secret = new TextEncoder().encode(process.env.LOCAL_SESSION_SECRET);
@@ -27,8 +26,6 @@ export async function GET(req: NextRequest) {
 
     const supabase = getServiceRoleClient();
 
-    // 2. Fetch Posts using the Algorithmic Vigor Score (RPC)
-    // Fallback included in case the migration hasn't been run yet
     let postsData: any[] = [];
     
     try {
@@ -52,12 +49,9 @@ export async function GET(req: NextRequest) {
       postsData = rawPosts || [];
     }
 
-    // 3. Batch fetch remaining profiles if not included in RPC
-    // Note: Our RPC already yields author data for efficiency
     const profileMap: any = {};
     const reactionsMap: any = {};
 
-    // 4. Batch fetch reactions for the current batch
     if (postsData.length > 0) {
       try {
         const postIds = postsData.map((p: any) => p.id);
@@ -75,7 +69,6 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // 5. Connect the dots
     const posts = postsData.map((p: any) => {
       const postReactions = reactionsMap[p.id] || [];
       const userReactionObj = sessionAddress 
