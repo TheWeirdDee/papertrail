@@ -10,16 +10,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Address is required' }, { status: 400 });
     }
 
-    // 1. Generate a secure random nonce
     const nonce = crypto.randomBytes(16).toString('hex');
     
-    // 2. Set expiration (5 minutes from now)
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
 
-    // 3. Store nonce in Supabase via Service Role
     const supabase = getServiceRoleClient();
     
-    // Explicitly clear any existing nonces for this address to prevent confusion
     await supabase.from('auth_nonces').delete().eq('address', address);
 
     const { error } = await supabase
