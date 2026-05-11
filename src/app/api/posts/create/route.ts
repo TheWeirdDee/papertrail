@@ -13,7 +13,6 @@ export async function POST(req: NextRequest) {
 
     const token = authHeader.split(' ')[1];
     
-    // 1. Verify Session Token
     if (!process.env.LOCAL_SESSION_SECRET) {
       throw new Error('LOCAL_SESSION_SECRET is not configured');
     }
@@ -25,7 +24,6 @@ export async function POST(req: NextRequest) {
 
     const supabase = getServiceRoleClient();
 
-    // 2. Anti-Spam: Rate Limit Check (30s)
     const thirtySecondsAgo = new Date(Date.now() - 30 * 1000).toISOString();
     const { data: lastPost, error: rateError } = await supabase
       .from('posts')
@@ -40,8 +38,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Please wait 30 seconds between posts' }, { status: 429 });
     }
 
-    // 3. Anti-Spam: Duplicate Content Check (2m)
-    // Only check if content is provided
     if (content) {
       const twoMinutesAgo = new Date(Date.now() - 120 * 1000).toISOString();
       const { data: dupPost } = await supabase
@@ -58,7 +54,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 4. Secure Write via Service Role
     const finalContent = content || (mediaUrl || pollData ? '' : 'Said GM!');
 
     const { data, error } = await supabase
