@@ -66,7 +66,6 @@ export default function ProfileHeader({ targetAddress }: { targetAddress: string
 
   const isSelf = currentAddress === targetAddress;
 
-  // 1. Fetch Comprehensive Profile Data
   const fetchProfile = async () => {
     try {
       setIsLoading(true);
@@ -85,7 +84,6 @@ export default function ProfileHeader({ targetAddress }: { targetAddress: string
   useEffect(() => {
     fetchProfile();
     
-    // Fetch On-Chain Stats for this profile
     const fetchOnChain = async () => {
       try {
         const [chainData, gmBalance] = await Promise.all([
@@ -110,7 +108,6 @@ export default function ProfileHeader({ targetAddress }: { targetAddress: string
     fetchOnChain();
   }, [targetAddress, currentAddress]);
 
-  // 2. Handle On-Chain Follow with Shadow Index Sync
   const handleFollow = async () => {
     if (!isConnected || !currentAddress || isSelf || isFollowPending) return;
     
@@ -129,7 +126,6 @@ export default function ProfileHeader({ targetAddress }: { targetAddress: string
         onFinish: async (data: any) => {
           console.log('TX Broadcast Success - TXID:', data.txId);
           
-          // SYNC SHADOW INDEX: Let Supabase know about this follow instantly
           try {
              const confirmRes = await fetch('/api/profile/follow/confirm', {
                 method: 'POST',
@@ -141,14 +137,12 @@ export default function ProfileHeader({ targetAddress }: { targetAddress: string
              });
              
              if (confirmRes.ok) {
-                // Optimistically update UI
                 setProfile(prev => prev ? {
                    ...prev,
                    isFollowing: true,
                    followersCount: prev.followersCount + 1
                 } : null);
                 
-                // If it's the current user's profile, sync their counts too
                 dispatch(updateStats({ following: (profile?.followingCount || 0) + 1 } as any));
              }
           } catch (syncErr) {
