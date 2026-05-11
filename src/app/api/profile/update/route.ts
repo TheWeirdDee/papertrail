@@ -23,7 +23,6 @@ export async function POST(req: NextRequest) {
 
     const token = authHeader.split(' ')[1];
     
-    // 1. Verify Session Token
     if (!process.env.LOCAL_SESSION_SECRET) {
       throw new Error('LOCAL_SESSION_SECRET is not configured');
     }
@@ -31,7 +30,6 @@ export async function POST(req: NextRequest) {
     const { payload } = await jose.jwtVerify(token, secret);
     const sessionAddress = payload.address as string;
 
-    // 2. Perform Secure Upsert via Service Role
     const supabase = getServiceRoleClient();
     const { data, error } = await supabase
       .from('profiles')
