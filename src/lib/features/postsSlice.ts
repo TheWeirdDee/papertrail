@@ -114,7 +114,6 @@ export const createRealPost = createAsyncThunk(
         const errData = await response.json();
         const errMsg = errData.error || 'Failed to create post';
         
-        // Handle session expiration (the "exp" claim error)
         if (errMsg.toLowerCase().includes('exp') || errMsg.toLowerCase().includes('unauthorized') || response.status === 401) {
           dispatch(logout());
           throw new Error('Your session has expired. Please sign in again.');
@@ -146,7 +145,6 @@ const postsSlice = createSlice({
       state.feed = state.feed.filter(p => p.id !== action.payload);
     },
     addRealtimePost: (state, action: PayloadAction<Post>) => {
-      // Deduplicate: Don't add if already exists (e.g., from our own optimistic update)
       if (!state.feed.find(p => p.id === action.payload.id)) {
         state.feed = [action.payload, ...state.feed];
       }
