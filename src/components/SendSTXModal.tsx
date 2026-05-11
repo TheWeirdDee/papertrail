@@ -37,7 +37,6 @@ export default function SendSTXModal({ isOpen, onClose }: SendSTXModalProps) {
     try {
       await tipAuthor(recipient, parseFloat(amount), currentAddress);
       
-      // TRIGGER DB SYNC: Tell the backend to update Supabase based on the new on-chain state
       await fetch('/api/user/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
