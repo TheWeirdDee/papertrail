@@ -2,7 +2,6 @@
 
 import { X, Trophy, Star, Circle, Flame, Target } from 'lucide-react';
 
-// Helper for Vanguard Icon - 4 hollow concentric rings matching reference
 const NestedCircle = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 100 100" className={className}>
     <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="8" opacity="0.2" />
