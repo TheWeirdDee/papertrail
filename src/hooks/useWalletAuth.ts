@@ -14,7 +14,6 @@ export const useWalletAuth = () => {
     try {
       console.log('--- UNIFIED LOGIN INITIATED ---');
       
-      // 1. Phase 1: Connect
       const stxAddress = await authenticate();
       if (!stxAddress) {
         console.warn('--- LOGIN CANCELED: NO ADDRESS RETURNED ---');
@@ -23,10 +22,8 @@ export const useWalletAuth = () => {
       
       console.log('--- PHASE 1 SUCCESS: ADDRESS ---', stxAddress);
       
-      // Update Redux immediately so UI shows "Connected" state
       dispatch(setAddress(stxAddress));
       
-      // 2. Phase 2: Sign Message
       console.log('--- STARTING PHASE 2: SIGNATURE ---');
       toast.loading('Verifying identity...', { id: 'auth' });
       
@@ -37,9 +34,7 @@ export const useWalletAuth = () => {
         dispatch(setSessionToken(authData.token));
         toast.success("Security Verification Successful", { id: 'auth' });
         
-        // Refresh or Redirect
         setTimeout(() => {
-          // If we are on landing, go to dashboard. Otherwise refresh current page.
           if (window.location.pathname === '/') {
             router.push('/dashboard');
           } else {
