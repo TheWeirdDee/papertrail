@@ -119,7 +119,6 @@ const userSlice = createSlice({
         localStorage.setItem('gm_user_address', action.payload.address);
       }
       
-      // Only set username if we don't already have a valid on-chain one
       if (!state.username || state.username.startsWith('ST')) {
         state.username = fallbackName;
       }
@@ -201,7 +200,6 @@ const userSlice = createSlice({
         state.lastGm = action.payload.lastGm;
       }
       
-      // Strict Persistence Logic: Supabase > localStorage > Address
       let incomingName = action.payload.username;
       
 
@@ -211,7 +209,6 @@ const userSlice = createSlice({
           localStorage.setItem(`username_${state.address}`, incomingName);
         }
       } 
-      // 2. If incoming is null/address and we are already set to a real name, keep it
       else if (state.username && !state.username.startsWith('ST')) {
 
       } 
@@ -271,12 +268,9 @@ export const fetchOnChainStats = (address: string) => async (dispatch: any, getS
     }
     const userState = (getState() as RootState).user;
 
-    // --- HYBRID SYNC: Calculate effective stats using Block Heights ---
     const lastGmBlock = data?.lastGm || 0;
     const blocksSinceLastGm = height > 0 && lastGmBlock > 0 ? (height - lastGmBlock) : 0;
     
-    // Streak Decay Logic: If > 288 blocks (~48 hours), the streak is technically broken
-    // The contract resets it on the NEXT 'say-gm', but UI should show 0 now for accuracy.
     const GRACE_PERIOD_BLOCKS = 288;
     const isStreakBroken = blocksSinceLastGm > GRACE_PERIOD_BLOCKS;
 
@@ -284,13 +278,11 @@ export const fetchOnChainStats = (address: string) => async (dispatch: any, getS
     
     if (isStreakBroken) {
       console.log('--- HYBRID SYNC: Streak has decayed due to inactivity (missing > 48h) ---');
-      // We keep the streak number in state but mark it broken so UI can show "Restore"
     }
 
     const today = new Date().toISOString().split('T')[0];
     const hasLocalGmToday = localStorage.getItem(`gm_date_${address}`) === today;
     
-    // Lag Detection: If we said GM today locally, but the on-chain lastGm is still old
     const isChainLagging = hasLocalGmToday && (
       lastGmBlock === 0 || 
       (blocksSinceLastGm > 144) // Chain's last GM was from a previous cycle (> 24h ago)
@@ -349,7 +341,6 @@ export const fetchOnChainStats = (address: string) => async (dispatch: any, getS
         website: p.website || null
       }));
     } else {
-      // Fallback to localStorage if no profile found in Supabase
       if (typeof window !== 'undefined') {
         const cached = localStorage.getItem(`username_${address}`);
         if (cached) {
