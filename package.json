@@ -1,13 +1,15 @@
 {
   "name": "@divinedilibe/gm-dapp",
   "version": "0.1.1",
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "test:contracts": "vitest run tests/gm-social.test.ts",
-    "deploy:mainnet": "ts-node scratch/deploy-mainnet.ts"
+    "deploy:mainnet": "ts-node-esm scratch/deploy-mainnet.ts",
+    "bot": "ts-node-esm scripts/private/divine.ts"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",

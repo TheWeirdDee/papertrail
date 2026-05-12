@@ -1,37 +1,37 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #0a0a0a;
-  --color-foreground: #ededed;
-  --color-card: #111111;
-  --color-accent: #22d3ee;
-  --color-secondary: #6366f1;
-  --color-border: #222222;
+  --color-background: hsl(240, 10%, 3.9%);
+  --color-foreground: hsl(0, 0%, 98%);
+  --color-card: hsl(240, 10%, 6%);
+  --color-accent: hsl(191, 91%, 50%);
+  --color-secondary: hsl(243, 75%, 66%);
+  --color-border: hsl(240, 5%, 15%);
+  --color-muted: hsl(240, 5%, 64.9%);
+  --color-muted-foreground: hsl(240, 5%, 45%);
   
   --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  
   --shadow-soft: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
+  --shadow-heavy: 0 20px 40px -4px rgba(0, 0, 0, 0.7);
 
-  /* 
-    These Tailwind theme font tokens intentionally use runtime CSS vars.
-    Tailwind v4 @theme (without inline) defers resolution to runtime,
-    so var(--font-inter) etc. from next/font will be picked up correctly.
-  */
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, monospace;
 }
 
 :root {
   color-scheme: dark;
-  --accent-glow: 0 0 15px rgba(34, 211, 238, 0.15);
+  --accent-glow: 0 0 15px rgba(34, 211, 238, 0.1);
+  --glass-bg: rgba(10, 10, 10, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.05);
 }
 
 /* ─── Global Input & Focus Styles ──────────────── */
-/* Global Input Focus */
 input:focus, textarea:focus, select:focus {
   outline: none;
 }
 
-/* Base focus-visible for keyboard nav */
 :focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
@@ -39,42 +39,60 @@ input:focus, textarea:focus, select:focus {
 
 /* ─── Base typography ─────────────────────────── */
 body {
-  background-color: #0a0a0a;
-  color: #ededed;
-  /* Inter as the default body font — references the CSS var injected by next/font */
+  background-color: hsl(240, 10%, 3.9%);
+  color: hsl(0, 0%, 98%);
   font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Space Grotesk on all semantic headings */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.02em;
 }
 
 /* ─── Utility classes ─────────────────────────── */
 
-/* Syne Bold — for the Gm logo text */
 .font-logo {
   font-family: var(--font-syne), ui-sans-serif, system-ui, sans-serif !important;
+  letter-spacing: -0.04em;
 }
 
-/* Space Grotesk — for headings when explicitly needed */
 .font-heading {
   font-family: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif !important;
 }
 
-/* Inter — for body copy when explicitly needed */
 .font-body {
   font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif !important;
 }
 
 /* ─── Custom utilities ────────────────────────── */
 @layer utilities {
-  .card {
-    background-color: #111111;
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+  }
+
+  .glass-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0) 100%);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
     border-radius: 1rem;
-    border: 1px solid #222222;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+    box-shadow: var(--shadow-heavy);
+  }
+
+  .text-gradient {
+    background: linear-gradient(to right, #fff, rgba(255, 255, 255, 0.5));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .accent-gradient {
+    background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 }
 
@@ -84,8 +102,18 @@ h1, h2, h3, h4, h5, h6 {
   100% { transform: translateX(-50%); }
 }
 .animate-marquee {
-  animation: marquee 30s linear infinite;
+  animation: marquee 40s linear infinite;
 }
 .animate-marquee:hover {
   animation-play-state: paused;
+}
+
+/* ─── Smooth Entrance ─────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.reveal {
+  animation: fadeInUp 0.5s ease-out forwards;
 }
