@@ -1,317 +1,166 @@
 'use client';
 
-import GMButton from '@/components/GMButton';
-import IdentityAvatar from '@/components/IdentityAvatar';
-import PostCard from '@/components/PostCard';
-import AnalyticsGraph from '@/components/AnalyticsGraph';
-import StatCardVertical from '@/components/StatCardVertical';
-import SetUsernameModal from '@/components/SetUsernameModal';
-import ProPlanModal from '@/components/ProPlanModal';
-import NetworkStats from '@/components/NetworkStats';
-import { useSelector } from 'react-redux';
+import { useEffect, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/lib/store';
-import Link from 'next/link';
-import { useState, useEffect, useRef } from 'react';
+import { fetchOnChainStats } from '@/lib/features/userSlice';
 import { 
-  Users, 
+  Flame, 
+  Star, 
+  Award, 
+  ShieldCheck, 
   TrendingUp, 
-  History,
-  CheckCircle2,
-  Lock,
-  ArrowRight,
   Zap,
-  LayoutDashboard,
-  Award,
-  Crown,
-  Heart,
-  Loader2
+  Activity,
+  Target,
+  ArrowUpRight,
+  Plus
 } from 'lucide-react';
-
-import { callContract, getUserOnChainData } from '@/lib/stacks';
-import { APP_CONFIG } from '@/lib/config';
-import { useDispatch } from 'react-redux';
-import { updateStats, fetchOnChainStats } from '@/lib/features/userSlice';
-import { fetchPostsFromSupabase } from '@/lib/features/postsSlice';
-import toast from 'react-hot-toast';
+import StreakCard from '@/components/StreakCard';
 
 export default function DashboardContent() {
   const dispatch = useDispatch();
-  const { 
-    address, 
-    isConnected, 
-    username,
-    points,
-    streak,
-    isLoading, 
-    followers, 
-    following, 
-    isPro, 
-    isOptimisticPro,
-    isStreakBroken,
-    avatar
-  } = useSelector((state: RootState) => state.user);
-  const activePro = isPro || isOptimisticPro;
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [showProModal, setShowProModal] = useState(false);
-  const dismissed = useRef(false);
-  const feed = useSelector((state: RootState) => state.posts.feed);
-  const [isMounted, setIsMounted] = useState(false);
-  const [isHealing, setIsHealing] = useState(false);
-  
+  const { address, streak, points, gmBalance, isPro, healCount } = useSelector((state: RootState) => state.user);
+  const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
-    setIsMounted(true);
-    if (feed.length === 0) {
-      dispatch(fetchPostsFromSupabase() as any);
-    }
-    
-    if (isConnected && address) {
+    setMounted(true);
+    if (address) {
       dispatch(fetchOnChainStats(address) as any);
     }
-  }, [dispatch, isConnected, address]);
+  }, [address, dispatch]);
 
-  useEffect(() => {
-    if (!isLoading && isConnected && !username && !dismissed.current) {
-      setShowOnboarding(true);
-    } else if (username) {
-      setShowOnboarding(false);
-    }
-  }, [isConnected, username, isLoading]);
-
-  const handleCloseOnboarding = () => {
-    dismissed.current = true;
-    setShowOnboarding(false);
-  };
-
-  const [isConfirmedToday, setIsConfirmedToday] = useState(false);
-  
-  useEffect(() => {
-    if (!address) return;
-    const today = new Date().toISOString().split('T')[0];
-    const savedDate = localStorage.getItem(`gm_date_${address}`);
-    if (savedDate === today) {
-      setIsConfirmedToday(true);
-    }
-  }, [address, isConnected]);
-
-  const handleHealStreak = async () => {
-    if (!address || isHealing) return;
-    
-    setIsHealing(true);
-    try {
-      await callContract({
-        contractAddress: APP_CONFIG.social.address,
-        contractName: APP_CONFIG.social.name,
-        functionName: 'heal-streak',
-        functionArgs: [],
-        onFinish: (data: any) => {
-          toast.success("Streak Healed Successfully!");
-          dispatch(fetchOnChainStats(address) as any);
-          setIsHealing(false);
-        },
-        onCancel: () => {
-          setIsHealing(false);
-        }
-      });
-    } catch (err) {
-      console.error('Heal Streak Error:', err);
-      toast.error("Failed to heal streak");
-      setIsHealing(false);
-    }
-  };
-
-  const addressShort = address ? `${address.substring(0, 6)}...${address.substring(address.length - 4)}` : 'GM User';
-  const greeting = isLoading && !username 
-    ? "Loading profile..." 
-    : (username || addressShort);
-
-  if (!isMounted) {
-    return (
-      <div className="min-h-[80vh] flex flex-col items-center justify-center p-4">
-        <Loader2 className="h-10 w-10 text-white/10 animate-spin" />
-      </div>
-    );
-  }
-
-  if (isLoading && !isConnected) {
-    return (
-      <div className="min-h-[80vh] flex flex-col items-center justify-center p-4">
-        <Loader2 className="h-12 w-12 text-white/20 animate-spin mb-4" />
-        <p className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">Verifying Session...</p>
-      </div>
-    );
-  }
-
+  if (!mounted) return null;
 
   return (
-    <div className="p-6 lg:p-10 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 max-w-[1600px] mx-auto">
+    <div className="max-w-7xl mx-auto py-10 px-6 space-y-12 pb-32 reveal">
       
-      <SetUsernameModal isOpen={showOnboarding} onClose={handleCloseOnboarding} />
-      <ProPlanModal isOpen={showProModal} onClose={() => setShowProModal(false)} />
-
-      {/* Network Health Stats */}
-      <NetworkStats />
-
-      <div className="flex flex-col lg:grid lg:grid-cols-12 gap-10">
-        
-        {/* Main Content Area (Column 1-8) */}
-        <div className="lg:col-span-8 flex flex-col gap-10">
-          
-          {/* 1. Hero Greeting */}
-          <section className="bg-gradient-to-br from-white/[0.03] to-transparent p-8 md:p-12 rounded-[3rem] border border-white/5 relative overflow-hidden group order-1">
-            <div className="absolute top-0 right-0 p-12 opacity-[0.03] transition-transform group-hover:scale-110 duration-1000">
-               <Zap className="h-48 w-48 text-[var(--color-accent)]" />
+      {/* 1. Profile QuickStats & Greeting */}
+      <section className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+         <div className="space-y-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 mb-2">
+               <ShieldCheck className="h-3 w-3" />
+               <span className="text-[10px] font-black uppercase tracking-[0.2em]">Verified Protocol Operator</span>
             </div>
-            
-            <div className="relative z-10 max-w-xl">
-               <div className="flex items-center gap-3 mb-4">
-                  <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight truncate">
-                    Hi, {username || addressShort}.
-                  </h1>
-                  {activePro && (
-                    <div className="flex items-center justify-center p-1.5 transition-all">
-                      <Crown className="w-5 h-5 text-white fill-white/10 animate-pulse" />
-                    </div>
-                  )}
+            <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter">
+               System <span className="text-white/40">Dashboard.</span>
+            </h1>
+         </div>
+         
+         <div className="flex items-center gap-4">
+            <button className="bg-white text-black font-black px-8 py-4 rounded-2xl flex items-center gap-3 hover:bg-gray-100 transition-all active:scale-95 shadow-2xl">
+               Say GM
+               <Plus className="h-4 w-4" />
+            </button>
+         </div>
+      </section>
+
+      {/* 2. Gamified Stats Bento Grid */}
+      <section className="grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-[240px]">
+         
+         {/* Streak Card - Large */}
+         <div className="md:col-span-8 md:row-span-1">
+            <StreakCard />
+         </div>
+
+         {/* GM Balance Card */}
+         <div className="md:col-span-4 glass-card p-10 flex flex-col justify-between group bg-yellow-500/[0.02] border-yellow-500/10">
+            <div className="flex items-center justify-between">
+               <div className="h-14 w-14 rounded-2xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center text-yellow-500">
+                  <Zap className="h-7 w-7 fill-yellow-500/20" />
                </div>
-               <p className="text-gray-400 text-lg md:text-xl font-medium mb-8 leading-relaxed">
-                  Welcome back! Your streak is active and your reputation is growing. Inspire the network today.
+               <TrendingUp className="h-5 w-5 text-yellow-900" />
+            </div>
+            <div>
+               <p className="text-[10px] font-black text-yellow-900 uppercase tracking-widest mb-1">Liquid $GM Yield</p>
+               <h3 className="text-5xl font-black text-white tracking-tighter tabular-nums">
+                  {(gmBalance / 1000000).toLocaleString(undefined, { minimumFractionDigits: 1 })}
+               </h3>
+               <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mt-2 flex items-center gap-2">
+                  <ArrowUpRight className="h-3 w-3 text-green-500" />
+                  +14% vs Previous Cycle
                </p>
-               <button onClick={() => setShowOnboarding(true)} className="bg-white text-black font-black px-8 py-4 rounded-2xl flex items-center gap-2 hover:bg-gray-200 transition-all active:scale-95 shadow-2xl">
-                  {(!username || username.length > 25) ? 'Set Username' : 'View Details'}
-                  <ArrowRight className="h-5 w-5" />
+            </div>
+         </div>
+
+         {/* Reputation Progress */}
+         <div className="md:col-span-4 glass-card p-10 flex flex-col justify-between group bg-indigo-500/[0.02] border-indigo-500/10">
+            <div className="flex items-center justify-between">
+               <div className="h-14 w-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-500">
+                  <Star className="h-7 w-7 fill-indigo-500/20" />
+               </div>
+               <Target className="h-5 w-5 text-indigo-900" />
+            </div>
+            <div>
+               <p className="text-[10px] font-black text-indigo-900 uppercase tracking-widest mb-1">Reputation Score</p>
+               <h3 className="text-5xl font-black text-white tracking-tighter tabular-nums">
+                  {(points / 10).toLocaleString()}
+               </h3>
+               <div className="mt-4 h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                  <div className="h-full bg-indigo-500 rounded-full" style={{ width: '65%' }}></div>
+               </div>
+               <p className="text-[9px] font-bold text-gray-700 uppercase tracking-widest mt-3">Next Tier: Grandmaster (800 RP Left)</p>
+            </div>
+         </div>
+
+         {/* Protocol Health / Activity */}
+         <div className="md:col-span-8 glass-card p-10 flex flex-col justify-between group overflow-hidden">
+            <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:scale-110 transition-transform duration-1000">
+               <Activity className="h-48 w-48 text-white" />
+            </div>
+            <div className="relative z-10 flex items-center gap-10">
+               <div>
+                  <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-1">Network Weight</p>
+                  <p className="text-4xl font-black text-white tracking-tighter">0.84%</p>
+               </div>
+               <div className="h-12 w-px bg-white/5"></div>
+               <div>
+                  <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-1">Heal Charges</p>
+                  <p className="text-4xl font-black text-white tracking-tighter">{healCount}/3</p>
+               </div>
+               <div className="h-12 w-px bg-white/5"></div>
+               <div>
+                  <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-1">Protocol Tier</p>
+                  <p className={`text-4xl font-black tracking-tighter ${isPro ? 'text-yellow-500' : 'text-gray-500'}`}>
+                    {isPro ? 'PRO' : 'BASIS'}
+                  </p>
+               </div>
+            </div>
+            <div className="relative z-10 flex items-center justify-between">
+               <p className="text-xs text-gray-500 font-medium max-w-sm">
+                  Your node is currently active and settling social data on the Stacks blockchain. Maintain your streak to maximize yield.
+               </p>
+               <button className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.3em] hover:text-white transition-colors">
+                  Protocol Audit Log →
                </button>
             </div>
-          </section>
+         </div>
 
-          {/* 2. GM Button (Mobile) */}
-          <div className="lg:hidden order-2">
-            <div className="bg-[#0A0A0A] border border-[var(--color-accent)]/20 p-8 rounded-[2.5rem] flex flex-col items-center justify-center gap-6 relative overflow-hidden group shadow-[0_0_50px_rgba(34,197,94,0.05)]">
-               <div className="absolute top-0 left-0 w-full h-1 bg-[var(--color-accent)]/50"></div>
-               <div className="scale-90">
-                  <GMButton />
+      </section>
+
+      {/* 3. Action Hub */}
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-10 pt-10">
+         <div className="glass-card p-12 space-y-6 group hover:border-indigo-500/30 transition-all cursor-pointer bg-gradient-to-br from-indigo-500/[0.02] to-transparent">
+            <div className="flex items-center justify-between">
+               <h3 className="text-2xl font-black text-white tracking-tight uppercase tracking-widest">Rewards <br/> Hub.</h3>
+               <div className="h-16 w-16 rounded-full border border-white/5 flex items-center justify-center group-hover:bg-white text-gray-500 group-hover:text-black transition-all">
+                  <ArrowUpRight className="h-6 w-6" />
                </div>
-               <p className="text-xs font-black text-gray-600 uppercase tracking-[0.2em] text-center">Maintain your status</p>
             </div>
-          </div>
+            <p className="text-gray-500 text-sm leading-relaxed font-medium">Claim your daily $GM emissions and track your historical protocol distribution.</p>
+         </div>
 
-          {/* 3. Stats Section */}
-          <section className="grid grid-cols-1 md:grid-cols-3 gap-6 order-3">
-               <StatCardVertical 
-                  label="Days Streak" 
-                  value={streak || 0} 
-                  icon={History} 
-                  subtext={
-                    isStreakBroken 
-                      ? "Your streak has decayed!" 
-                      : activePro ? "Streak protection active" : "Keep it up for bonuses!"
-                  }
-                  isLoading={isLoading}
-                  cta={isStreakBroken && (
-                    <button 
-                      onClick={() => activePro ? handleHealStreak() : setShowProModal(true)}
-                      disabled={isHealing}
-                      className={`w-full py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 ${
-                        activePro ? 'bg-green-600 text-white' : 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white'
-                      }`}
-                    >
-                      {isHealing ? (
-                        <Loader2 className="w-3 h-3 animate-spin" />
-                      ) : activePro ? (
-                        <CheckCircle2 className="w-3 h-3" />
-                      ) : (
-                        <Crown className="w-3 h-3" />
-                      )}
-                      {isHealing ? 'Healing...' : activePro ? 'Heal Streak' : 'Restore with Pro'}
-                    </button>
-                  )}
-               />
-             <StatCardVertical 
-                label="Social Reputation" 
-                value={((points || 0) / 10).toFixed(1)} 
-                icon={Award} 
-                subtext={
-                  activePro 
-                    ? "2x Rep Multiplier active" 
-                    : (points || 0) > 100 ? "Top 5% of all users" :
-                      (points || 0) > 50 ? "Top 15% of all users" :
-                      (points || 0) > 10 ? "Top 30% of all users" : "New Network Member"
-                }
-                accentColor="#818cf8"
-                isLoading={isLoading}
-             />
-             <StatCardVertical 
-                label="Total Followers" 
-                value={followers || 0} 
-                icon={Users} 
-                subtext={`${following} following`}
-                accentColor="#f472b6"
-                isLoading={isLoading}
-             />
-          </section>
-
-          {/* 4. Analytics Graph */}
-          <div className="order-5">
-            <AnalyticsGraph />
-          </div>
-        </div>
-
-        {/* Side Panel */}
-        <div className="lg:col-span-4 flex flex-col gap-8 order-2 lg:order-none">
-          
-          {/* GM Button (Desktop) */}
-          <div className="hidden lg:flex bg-[#0A0A0A] border border-[var(--color-accent)]/20 p-8 rounded-[2.5rem] flex-col items-center justify-center gap-6 relative overflow-hidden group shadow-[0_0_50px_rgba(34,197,94,0.05)]">
-             <div className="absolute top-0 left-0 w-full h-1 bg-[var(--color-accent)]/50"></div>
-             <div className="scale-90">
-                <GMButton />
-             </div>
-             <p className="text-xs font-black text-gray-600 uppercase tracking-[0.2em] text-center">Maintain your status</p>
-          </div>
-
-          {/* Followers Preview */}
-          <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 order-4">
-             <div className="flex items-center justify-between mb-5">
-                <h4 className="text-sm font-black text-white uppercase tracking-widest">Followers</h4>
-                <Link href="/followers" className="text-[10px] font-bold text-gray-500 hover:text-white transition-colors">View All</Link>
-             </div>
-             {followers === 0 ? (
-               <div className="flex flex-col items-center gap-3 py-4 text-center">
-                 <div className="flex -space-x-3">
-                   <IdentityAvatar address={address || ''} src={avatar} size="xs" className="h-10 w-10 !rounded-full border-2 border-[#0a0a0a]" />
-                   {[1,2].map(i => (
-                     <div key={i} className="h-10 w-10 rounded-full border-2 border-[#0a0a0a] bg-white/[0.03] flex items-center justify-center">
-                       <Users className="h-4 w-4 text-gray-700" />
-                     </div>
-                   ))}
-                 </div>
-                 <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">No followers yet</p>
-                 <Link href="/feed" className="text-[10px] font-black text-[var(--color-accent)] hover:underline uppercase tracking-widest">Explore Feed</Link>
+         <div className="glass-card p-12 space-y-6 group hover:border-purple-500/30 transition-all cursor-pointer bg-gradient-to-br from-purple-500/[0.02] to-transparent">
+            <div className="flex items-center justify-between">
+               <h3 className="text-2xl font-black text-white tracking-tight uppercase tracking-widest">Governance <br/> Portal.</h3>
+               <div className="h-16 w-16 rounded-full border border-white/5 flex items-center justify-center group-hover:bg-white text-gray-500 group-hover:text-black transition-all">
+                  <ArrowUpRight className="h-6 w-6" />
                </div>
-             ) : (
-                <div className="flex flex-col items-center gap-3 py-4 text-center">
-                   <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">{followers} connected nodes</p>
-                   <Link href="/followers" className="text-[10px] font-black text-[var(--color-accent)] hover:underline uppercase tracking-widest">Manage Network</Link>
-                </div>
-             )}
-          </div>
+            </div>
+            <p className="text-gray-500 text-sm leading-relaxed font-medium">Use your Reputation Points (RP) to vote on protocol updates and treasury allocations.</p>
+         </div>
+      </section>
 
-          {/* Pro Account CTA */}
-          <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-8 rounded-[2.5rem] relative overflow-hidden group shadow-2xl order-6">
-             <Zap className="absolute top-[-20px] right-[-20px] h-32 w-32 opacity-20 rotate-12 transition-transform group-hover:scale-110" />
-             <h4 className="text-xl font-black text-white mb-2 relative z-10">{activePro ? "Welcome Pro" : "Go Pro."}</h4>
-             <p className="text-indigo-100 text-sm mb-6 relative z-10 opacity-80">
-                {activePro ? "You are enjoying double reputation points and streak protection." : "Unlock custom avatars, higher streak multipliers, and exclusive badges."}
-             </p>
-             <button 
-                onClick={() => setShowProModal(true)}
-                className="w-full bg-white text-indigo-600 font-black py-4 rounded-2xl relative z-10 transition-transform active:scale-95 shadow-xl"
-             >
-                {activePro ? "View Membership" : "Purchase Now"}
-             </button>
-          </div>
-
-        </div>
-
-      </div>
     </div>
   );
 }
