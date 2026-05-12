@@ -1,212 +1,193 @@
 'use client';
 
-import PostCard from '@/components/PostCard';
-import CreatePostCard from '@/components/CreatePostCard';
-import FeedSidebar from '@/components/FeedSidebar';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState, AppDispatch } from '@/lib/store';
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { Sparkles, Clock, Flame, Globe, ChevronDown, Loader2 } from 'lucide-react';
-import { fetchPostsFromSupabase, fetchPaginatedPosts, addRealtimePost } from '@/lib/features/postsSlice';
+import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Post } from '@/lib/types';
+import PostCard from '@/components/PostCard';
+import { 
+  Loader2, 
+  Plus, 
+  TrendingUp, 
+  Zap, 
+  MessageCircle,
+  Bell,
+  ArrowUp,
+  RefreshCcw,
+  Sparkles
+} from 'lucide-react';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState } from '@/lib/store';
+import { setPosts, addPost } from '@/lib/features/postsSlice';
+import CreatePostModal from '@/components/CreatePostModal';
+import { toast } from 'react-hot-toast';
 
 export default function FeedContent() {
-  const dispatch = useDispatch<AppDispatch>();
-  const { feed, isLoading, hasMore, lastCursor } = useSelector((state: RootState) => state.posts);
-  const { isConnected } = useSelector((state: RootState) => state.user);
-  const [activeTab, setActiveTab] = useState('Recent');
-  const [sortBy, setSortBy] = useState('Recent');
-  const [showSortDropdown, setShowSortDropdown] = useState(false);
-  
-  const observer = useRef<IntersectionObserver | null>(null);
+  const dispatch = useDispatch();
+  const posts = useSelector((state: RootState) => state.posts.posts);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [newPostsAvailable, setNewPostsAvailable] = useState(false);
+  const feedRef = useRef<HTMLDivElement>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  const fetchPosts = async (silent = false) => {
+    if (!silent) setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('posts')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      
+      const mappedPosts: Post[] = (data || []).map(p => ({
+        id: p.id,
+        content: p.content,
+        authorAddress: p.author_address,
+        authorUsername: p.author_username,
+        avatar: p.avatar_url,
+        timestamp: p.created_at,
+        txId: p.tx_id,
+        reactions: p.reactions || {},
+        commentsCount: p.comments_count || 0,
+        isPro: p.is_pro || false,
+        mediaUrl: p.media_url,
+        currentUserReaction: null
+      }));
+
+      dispatch(setPosts(mappedPosts));
+    } catch (err: any) {
+      toast.error("Failed to sync protocol feed");
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+      setNewPostsAvailable(false);
+    }
+  };
 
   useEffect(() => {
-    dispatch(fetchPostsFromSupabase());
-  }, [dispatch]);
+    fetchPosts();
 
-  useEffect(() => {
-    if (!supabase) return;
-
+    // Protocol Live Subscription
     const channel = supabase
-      .channel('public:posts')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'posts' },
-        (payload) => {
-          const newPostRaw = payload.new as any;
-          const formattedPost: Post = {
-            id: newPostRaw.id,
-            authorAddress: newPostRaw.address,
-            content: newPostRaw.content,
-            timestamp: newPostRaw.created_at,
-            txId: newPostRaw.tx_id,
-            reactions: { gm: 0, fire: 0, laugh: 0 },
-            commentsCount: 0,
-            repostsCount: 0,
-            points: newPostRaw.points || 0,
-            isPro: newPostRaw.is_pro || false,
-            avatar: newPostRaw.avatar_url || null,
-            mediaUrl: newPostRaw.media_url || null,
-            pollData: newPostRaw.poll_data || null,
-          };
-          dispatch(addRealtimePost(formattedPost));
+      .channel('protocol-feed-live')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts' }, (payload) => {
+        setNewPostsAvailable(true);
+        // Add to store immediately if it's near the top
+        if (window.scrollY < 100) {
+           fetchPosts(true);
         }
-      )
+      })
       .subscribe();
+
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 1000);
+    };
+    window.addEventListener('scroll', handleScroll);
 
     return () => {
       supabase.removeChannel(channel);
+      window.removeEventListener('scroll', handleScroll);
     };
-  }, [dispatch]);
+  }, []);
 
-  const lastPostRef = useCallback((node: HTMLDivElement) => {
-    if (isLoading || !hasMore) return;
-    if (observer.current) observer.current.disconnect();
-
-    observer.current = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && hasMore && lastCursor) {
-        dispatch(fetchPaginatedPosts(lastCursor));
-      }
-    });
-
-    if (node) observer.current.observe(node);
-  }, [isLoading, hasMore, lastCursor, dispatch]);
-
-  const tabs = [
-    { name: 'Recent', icon: Clock },
-    { name: 'Trending', icon: Flame },
-    { name: 'Top', icon: Sparkles },
-    { name: 'Global', icon: Globe },
-  ];
-
-  const getDisplayFeed = () => {
-    let list = [...feed];
-    
-    if (activeTab === 'Trending') {
-      list = list.sort((a, b) => {
-        const aTotal = (a.reactions?.gm || 0) + (a.reactions?.fire || 0) + (a.reactions?.laugh || 0) + (a.commentsCount || 0);
-        const bTotal = (b.reactions?.gm || 0) + (b.reactions?.fire || 0) + (b.reactions?.laugh || 0) + (b.commentsCount || 0);
-        return bTotal - aTotal;
-      });
-    } else if (activeTab === 'Top') {
-      list = list.sort((a, b) => (b.points || 0) - (a.points || 0));
-    }
-    
-    if (sortBy === 'Oldest') {
-      list = list.reverse();
-    }
-    
-    return list;
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (newPostsAvailable) fetchPosts(true);
   };
 
-  const displayFeed = getDisplayFeed();
-
   return (
-    <div className={`${isConnected ? 'max-w-[1400px]' : 'max-w-[1000px]'} mx-auto py-10 px-6 animate-in fade-in slide-in-from-bottom-4 duration-1000`}>
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-        
-        {/* Main Feed Content */}
-        <div className={`space-y-8 ${isConnected ? 'lg:col-span-8' : 'lg:col-span-12'}`}>
-          {/* Create Post Area */}
-          <CreatePostCard />
-
-          {/* Feed Header & Sort */}
-          <div className="flex items-center justify-between pt-4">
-             <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-              {tabs.map((tab) => {
-                const Icon = tab.icon;
-                const isActive = activeTab === tab.name;
-                return (
-                  <button
-                    key={tab.name}
-                    onClick={() => setActiveTab(tab.name)}
-                    className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${
-                      isActive 
-                        ? 'bg-white text-black shadow-xl ring-4 ring-white/5' 
-                        : 'bg-white/[0.02] text-gray-500 border border-white/5 hover:text-white hover:bg-white/5'
-                    }`}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {tab.name}
-                  </button>
-                );
-              })}
+    <div className="max-w-2xl mx-auto py-8 px-4 space-y-8 pb-32 reveal" ref={feedRef}>
+      
+      {/* 1. Feed Action Bar */}
+      <div className="flex items-center justify-between gap-4">
+         <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-500">
+               <Sparkles className="h-5 w-5" />
             </div>
-
-            <div className="hidden sm:flex items-center gap-2 text-gray-600 font-bold text-xs uppercase tracking-widest relative">
-               <span>Sort by : </span>
-               <button 
-                  onClick={() => setShowSortDropdown(!showSortDropdown)}
-                  className="flex items-center gap-1 text-gray-400 hover:text-white transition-colors"
-                >
-                  {sortBy} <ChevronDown className="h-3.5 w-3.5" />
-               </button>
-
-               {showSortDropdown && (
-                 <div className="absolute top-full right-0 mt-2 w-32 rounded-xl bg-[#0A0A0A] border border-white/10 shadow-2xl py-2 z-50">
-                    {['Recent', 'Oldest', 'Trending'].map(s => (
-                      <button 
-                        key={s}
-                        onClick={() => { setSortBy(s); setShowSortDropdown(false); }}
-                        className="w-full text-left px-4 py-2 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
-                      >
-                        {s}
-                      </button>
-                    ))}
-                 </div>
-               )}
+            <div>
+               <h1 className="text-xl font-black text-white tracking-tight">Mainnet Feed</h1>
+               <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Protocol Sync: Active</p>
             </div>
-          </div>
-
-          {/* Feed List */}
-          <div className="flex flex-col gap-8">
-            {displayFeed.length > 0 ? (
-              displayFeed.map((post, index) => (
-                <div 
-                  key={post.id} 
-                  ref={index === displayFeed.length - 1 ? lastPostRef : null}
-                  className="animate-in fade-in slide-in-from-bottom-6 duration-1000"
-                >
-                  <PostCard post={post} />
-                </div>
-              ))
-            ) : !isLoading ? (
-              <div className="py-20 text-center space-y-6 bg-[#0A0A0A] border border-white/5 rounded-[2.5rem]">
-                 <div className="h-20 w-20 bg-white/[0.02] rounded-full flex items-center justify-center mx-auto border border-white/5">
-                    <Globe className="h-8 w-8 text-gray-800" />
-                 </div>
-                 <div className="space-y-2">
-                    <h3 className="text-white font-black text-xl tracking-tight">Quiet on the network...</h3>
-                    <p className="text-gray-500 font-medium">Be the first player to say GM and start the pulse!</p>
-                 </div>
-              </div>
-            ) : null}
-
-            {isLoading && (
-               <div className="py-10 flex flex-col items-center justify-center gap-4 text-gray-700">
-                  <Loader2 className="h-8 w-8 animate-spin opacity-20" />
-                  <p className="text-[10px] font-black uppercase tracking-[0.3em]">Querying More Nodes...</p>
-               </div>
-            )}
-
-            {!hasMore && displayFeed.length > 0 && (
-              <div className="py-20 text-center">
-                 <div className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-white/[0.01] border border-white/5 backdrop-blur-sm">
-                    <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
-                    <span className="text-[10px] font-black text-gray-600 uppercase tracking-[0.3em]">End of Transmission</span>
-                 </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Sidebar (Cols 9-12) */}
-        <div className="hidden lg:block lg:col-span-4 sticky top-10 h-fit">
-          <FeedSidebar />
-        </div>
-
+         </div>
+         
+         <button 
+           onClick={() => fetchPosts(true)}
+           disabled={isRefreshing}
+           className="p-3 rounded-xl bg-white/[0.03] border border-white/5 text-gray-500 hover:text-white hover:bg-white/10 transition-all active:scale-90"
+         >
+            <RefreshCcw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+         </button>
       </div>
+
+      {/* 2. New Post Entry Shortcut */}
+      <button 
+        onClick={() => setShowCreateModal(true)}
+        className="w-full glass-card p-6 flex items-center gap-4 group hover:border-white/20 transition-all bg-white/[0.01]"
+      >
+        <div className="h-12 w-12 rounded-2xl bg-white/5 flex items-center justify-center border border-white/5 group-hover:scale-110 transition-transform">
+           <Plus className="h-6 w-6 text-gray-400 group-hover:text-white transition-colors" />
+        </div>
+        <span className="text-gray-600 font-bold tracking-tight text-sm uppercase tracking-widest">Broadcast a thought to the network...</span>
+      </button>
+
+      {/* 3. Real-time Notification HUD */}
+      {newPostsAvailable && (
+        <button 
+          onClick={scrollToTop}
+          className="fixed top-24 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-full font-black text-xs uppercase tracking-widest shadow-2xl animate-in fade-in slide-in-from-top-4 duration-500"
+        >
+           <ArrowUp className="h-4 w-4" />
+           New Protocol Activity
+        </button>
+      )}
+
+      {/* 4. Feed Content */}
+      <div className="space-y-6">
+        {isLoading ? (
+          <div className="py-40 flex flex-col items-center justify-center space-y-6 opacity-40">
+             <div className="relative">
+                <div className="absolute inset-0 bg-indigo-500/20 blur-2xl rounded-full animate-pulse"></div>
+                <Loader2 className="h-10 w-10 animate-spin text-indigo-500 relative z-10" />
+             </div>
+             <p className="text-[10px] font-black uppercase tracking-[0.4em] animate-pulse">Scanning Decentralized Ledger</p>
+          </div>
+        ) : posts.length === 0 ? (
+          <div className="py-40 text-center space-y-6 bg-white/[0.01] border border-dashed border-white/5 rounded-[3rem]">
+             <div className="h-20 w-20 bg-white/5 rounded-full flex items-center justify-center mx-auto">
+                <MessageCircle className="h-10 w-10 text-gray-700" />
+             </div>
+             <p className="text-gray-500 font-black text-xs uppercase tracking-widest">The social layer is currently silent</p>
+             <button 
+               onClick={() => setShowCreateModal(true)}
+               className="text-indigo-500 font-black text-xs uppercase tracking-widest hover:underline"
+             >
+                Be the first to speak
+             </button>
+          </div>
+        ) : (
+          posts.map((post) => (
+            <PostCard key={post.id} post={post} />
+          ))
+        )}
+      </div>
+
+      {/* 5. Scroll to Top shortcut */}
+      {showScrollTop && (
+        <button 
+          onClick={scrollToTop}
+          className="fixed bottom-10 right-10 h-14 w-14 rounded-2xl bg-white text-black flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all z-40"
+        >
+           <ArrowUp className="h-6 w-6" />
+        </button>
+      )}
+
+      <CreatePostModal 
+        isOpen={showCreateModal} 
+        onClose={() => setShowCreateModal(false)} 
+      />
     </div>
   );
 }
