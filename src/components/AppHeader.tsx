@@ -201,7 +201,7 @@ export default function AppHeader({ onMenuClick }: AppHeaderProps) {
                 </>
               ) : (
                 <button 
-                  onClick={() => void handleConnectWallet()}
+                  onClick={() => void login()}
                   className="flex items-center gap-3 rounded-[1.5rem] bg-white text-black px-8 py-3.5 text-[11px] font-black uppercase tracking-[0.2em] transition-all hover:bg-gray-100 active:scale-95 shadow-2xl"
                 >
                   <Wallet className="h-4 w-4" />
