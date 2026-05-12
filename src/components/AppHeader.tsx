@@ -5,14 +5,15 @@ import { useRouter } from 'next/navigation';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/lib/store';
 import BrandLogo from './BrandLogo';
-import { Bell, Settings, LogOut, User, Menu, Search, ChevronDown, Home, Wallet, Send } from 'lucide-react';
+import { Bell, Settings, LogOut, User, Menu, Search, ChevronDown, Home, Wallet, Send, Activity, Zap, Flame } from 'lucide-react';
 import Link from 'next/link';
 import IdentityAvatar from './IdentityAvatar';
 import SendSTXModal from './SendSTXModal';
-import { logout, setSessionToken, setAddress } from '@/lib/features/userSlice';
+import NotificationBell from './NotificationBell';
+import TransactionTracker from './TransactionTracker';
+import { logout } from '@/lib/features/userSlice';
 import { useWalletAuth } from '@/hooks/useWalletAuth';
 import { usePathname } from 'next/navigation';
-import { toast } from 'react-hot-toast';
 
 interface AppHeaderProps {
   onMenuClick: () => void;
@@ -25,7 +26,6 @@ export default function AppHeader({ onMenuClick }: AppHeaderProps) {
   const { login } = useWalletAuth();
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [showSendModal, setShowSendModal] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
@@ -33,8 +33,6 @@ export default function AppHeader({ onMenuClick }: AppHeaderProps) {
   useEffect(() => {
     setHasMounted(true);
   }, []);
-
-  const isGuestPath = pathname === '/feed' || pathname === '/leaderboard';
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -46,100 +44,89 @@ export default function AppHeader({ onMenuClick }: AppHeaderProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleConnectWallet = async () => {
-    await login();
-  };
-
   return (
     <>
     <header className="sticky top-0 z-40 w-full border-b border-white/5 bg-black/60 backdrop-blur-xl">
-      <div className="max-w-[1800px] mx-auto flex h-16 items-center justify-between px-4 lg:px-8">
+      <div className="max-w-[1800px] mx-auto flex h-20 items-center justify-between px-4 lg:px-12">
         
         {/* Left: Logo & Burger */}
-        <div className="flex items-center">
+        <div className="flex items-center gap-6">
           <button 
             onClick={onMenuClick}
-            className={`p-2 text-gray-400 hover:text-white transition-colors lg:hidden mr-4 ${!isConnected ? 'hidden' : ''}`}
+            className={`p-2.5 text-gray-400 hover:text-white transition-all bg-white/5 rounded-xl lg:hidden ${!isConnected ? 'hidden' : ''}`}
           >
             <Menu className="h-6 w-6" />
           </button>
           
-          <Link href="/" className="transition-transform hover:scale-105 hidden lg:block lg:pl-8 shrink-0">
-            <BrandLogo size={24} />
+          <Link href="/" className="transition-all hover:scale-105 group">
+            <BrandLogo size={28} />
           </Link>
-          
-          <Link href="/" className="transition-transform hover:scale-105 lg:hidden">
-            <BrandLogo size={24} />
-          </Link>
-
-          {/* Guest Home Shortcut */}
-          {hasMounted && !isConnected && isGuestPath && (
-            <Link 
-              href="/" 
-              className="ml-4 p-2.5 rounded-xl bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-all flex items-center justify-center group"
-              title="Back to Home"
-            >
-              <Home className="h-5 w-5 transition-transform group-hover:scale-110" />
-            </Link>
-          )}
         </div>
 
-        {/* Center: Search */}
-        <div className={`flex-1 max-w-2xl mx-2 md:mx-8 ${!isConnected ? 'hidden md:block' : ''}`}>
-          <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 group-focus-within:text-[var(--color-accent)] transition-colors" />
+        {/* Center: Search - High Fidelity */}
+        <div className={`hidden lg:flex flex-1 max-w-xl mx-12 ${!isConnected ? 'opacity-0' : ''}`}>
+          <div className="relative w-full group">
+            <div className="absolute inset-0 bg-white/[0.02] rounded-2xl blur-xl group-focus-within:bg-indigo-500/10 transition-all"></div>
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-600 group-focus-within:text-white transition-colors" />
             <input 
               type="text" 
-              placeholder="Search..." 
-              className="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-10 pr-4 text-xs md:text-sm focus:outline-none focus:border-[var(--color-accent)]/50 focus:bg-white/[0.08] transition-all"
+              placeholder="Search protocol data..." 
+              className="relative w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-12 pr-6 text-sm text-white focus:outline-none focus:border-white/20 focus:bg-white/[0.08] transition-all placeholder:text-gray-700 placeholder:font-black placeholder:uppercase placeholder:tracking-widest"
             />
           </div>
         </div>
 
-        {/* Right: Actions & Profile */}
-        {/* Right: Actions & Profile */}
-        <div className="flex items-center gap-3">
-          {isConnected && (
-            <div className="hidden md:flex items-center gap-3 mr-2">
-              {/* GM Tokens */}
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.03] border border-white/5 hover:bg-white/5 transition-colors cursor-default group">
-                <div className="flex items-center justify-center w-5 h-5 rounded-full bg-yellow-500/20 text-yellow-500 text-[10px] font-black italic">
+        {/* Right: Actions & Profile HUD */}
+        <div className="flex items-center gap-4">
+          
+          {hasMounted && isConnected && (
+            <div className="hidden xl:flex items-center gap-4 px-2 py-1.5 bg-white/[0.02] border border-white/5 rounded-[2rem] mr-2">
+              {/* $GM HUD */}
+              <div className="flex items-center gap-2.5 px-4 py-2 hover:bg-white/5 rounded-2xl transition-all cursor-pointer group">
+                <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-yellow-500/10 text-yellow-500 text-[10px] font-black italic border border-yellow-500/20 group-hover:scale-110 transition-transform">
                   $
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-black text-gray-500 leading-none uppercase tracking-tighter">GM Tokens</span>
-                  <span className="text-xs font-black text-white leading-tight">{(gmBalance / 1000000).toLocaleString(undefined, { minimumFractionDigits: 1 })}</span>
+                  <span className="text-[9px] font-black text-gray-600 leading-none uppercase tracking-widest">Balance</span>
+                  <span className="text-[13px] font-black text-white tracking-tight">{(gmBalance / 1000000).toLocaleString()}</span>
                 </div>
               </div>
 
-              {/* Streak */}
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.03] border border-white/5 hover:bg-white/5 transition-colors cursor-default">
-                <div className="flex items-center justify-center w-5 h-5 rounded-full bg-orange-500/20 text-orange-500">
-                  <Home className="w-3 h-3 fill-orange-500" />
+              <div className="w-px h-6 bg-white/5"></div>
+
+              {/* Streak HUD */}
+              <div className="flex items-center gap-2.5 px-4 py-2 hover:bg-white/5 rounded-2xl transition-all cursor-pointer group">
+                <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-orange-500/10 text-orange-500 border border-orange-500/20 group-hover:scale-110 transition-transform">
+                  <Flame className="w-3.5 h-3.5 fill-orange-500/20" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-black text-gray-500 leading-none uppercase tracking-tighter">Streak</span>
-                  <span className="text-xs font-black text-white leading-tight">{streak}d</span>
+                  <span className="text-[9px] font-black text-gray-600 leading-none uppercase tracking-widest">Streak</span>
+                  <span className="text-[13px] font-black text-white tracking-tight">{streak}d</span>
                 </div>
               </div>
 
-              {/* Reputation */}
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.03] border border-white/5 hover:bg-white/5 transition-colors cursor-default">
-                <div className="flex items-center justify-center w-5 h-5 rounded-full bg-blue-500/20 text-blue-500">
-                  <User className="w-3 h-3" />
+              <div className="w-px h-6 bg-white/5"></div>
+
+              {/* Rep HUD */}
+              <div className="flex items-center gap-2.5 px-4 py-2 hover:bg-white/5 rounded-2xl transition-all cursor-pointer group">
+                <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-blue-500/10 text-blue-500 border border-blue-500/20 group-hover:scale-110 transition-transform">
+                   <Activity className="w-3.5 h-3.5" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-black text-gray-500 leading-none uppercase tracking-tighter">Reputation</span>
-                  <span className="text-xs font-black text-white leading-tight">{(points / 10).toLocaleString()}</span>
+                  <span className="text-[9px] font-black text-gray-600 leading-none uppercase tracking-widest">Rep</span>
+                  <span className="text-[13px] font-black text-white tracking-tight">{(points / 10).toLocaleString()}</span>
                 </div>
               </div>
             </div>
           )}
 
-          <button className={`p-2 text-gray-400 hover:text-[var(--color-accent)] transition-colors relative ${!isConnected ? 'hidden md:block' : ''}`}>
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-2 right-2 h-2 w-2 bg-[var(--color-accent)] rounded-full border-2 border-black"></span>
-          </button>
+          {/* Global Functional Elements */}
+          {hasMounted && isConnected && (
+            <div className="flex items-center gap-2">
+               <TransactionTracker />
+               <NotificationBell />
+            </div>
+          )}
 
           <div className="relative" ref={dropdownRef}>
             {hasMounted && (
@@ -147,29 +134,32 @@ export default function AppHeader({ onMenuClick }: AppHeaderProps) {
                 <>
                   <button 
                     onClick={() => setShowUserDropdown(!showUserDropdown)}
-                    className="flex items-center gap-2 rounded-full bg-white/5 border border-white/10 p-1 pr-3 transition-all hover:bg-white/10 active:scale-95"
+                    className="flex items-center gap-3 rounded-[1.5rem] bg-white/5 border border-white/10 p-1.5 pr-4 transition-all hover:bg-white/10 active:scale-95 shadow-lg group"
                   >
-                    <IdentityAvatar address={address} src={avatar} size="xs" className="h-7 w-7 !rounded-full bg-white/10" />
-                    <span className="text-xs font-bold text-gray-300 hidden sm:inline">
-                      {username || (address ? `${address.substring(0, 4)}...${address.substring(address.length - 4)}` : 'Guest')}
-                    </span>
+                    <IdentityAvatar address={address} src={avatar} size="xs" className="h-9 w-9 !rounded-xl ring-2 ring-white/5 group-hover:ring-[var(--color-accent)]/30 transition-all" />
+                    <div className="hidden sm:flex flex-col items-start">
+                       <span className="text-[11px] font-black text-white tracking-tight leading-none mb-0.5">
+                         {username || `${address.substring(0, 4)}...${address.substring(address.length - 4)}`}
+                       </span>
+                       <span className="text-[9px] font-bold text-gray-600 uppercase tracking-widest leading-none">Identity Node</span>
+                    </div>
                     <ChevronDown 
-                      className={`h-3 w-3 text-gray-500 transition-transform duration-300 ${showUserDropdown ? 'rotate-180' : 'rotate-0'}`}
+                      className={`h-3 w-3 text-gray-600 transition-transform duration-500 ${showUserDropdown ? 'rotate-180' : 'rotate-0'}`}
                     />
                   </button>
 
                   {showUserDropdown && (
-                    <div className="absolute right-0 mt-3 w-56 rounded-2xl border border-white/10 bg-[#0A0A0A] shadow-[0_10px_40px_rgba(0,0,0,0.5)] py-3 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-300">
-                      <div className="px-5 py-3 border-b border-white/[0.03] mb-2 bg-white/[0.01]">
-                        <p className="text-[9px] uppercase tracking-widest text-gray-500 font-black mb-1">Wallet Connected</p>
-                        <p className="text-[11px] font-mono text-gray-400 truncate">{address}</p>
+                    <div className="absolute right-0 mt-5 w-64 rounded-[2.5rem] border border-white/10 bg-[#0A0A0A] shadow-[0_30px_100px_rgba(0,0,0,0.8)] py-4 overflow-hidden z-50 animate-in fade-in slide-in-from-top-4 duration-500">
+                      <div className="px-6 py-4 border-b border-white/[0.03] mb-3 bg-white/[0.01]">
+                        <p className="text-[9px] uppercase tracking-[0.3em] text-gray-600 font-black mb-1.5">Authorized Wallet</p>
+                        <p className="text-[10px] font-mono text-gray-400 truncate opacity-60">{address}</p>
                       </div>
                       
-                      <Link href={`/profile/${address}`} onClick={() => setShowUserDropdown(false)} className="mx-2 flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-all group">
-                        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-[var(--color-accent)]/10 transition-colors">
-                          <User className="h-4 w-4 group-hover:text-[var(--color-accent)]" />
+                      <Link href={`/profile/${address}`} onClick={() => setShowUserDropdown(false)} className="mx-3 flex items-center gap-4 px-4 py-3 text-sm text-gray-400 hover:bg-white/[0.03] hover:text-white rounded-2xl transition-all group">
+                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-indigo-500/10 transition-colors border border-white/5">
+                          <User className="h-4 w-4 group-hover:text-indigo-500 transition-colors" />
                         </div>
-                        <span className="font-bold">Your Profile</span>
+                        <span className="font-black text-xs uppercase tracking-widest">Public Identity</span>
                       </Link>
 
                       <button 
@@ -177,33 +167,33 @@ export default function AppHeader({ onMenuClick }: AppHeaderProps) {
                           setShowSendModal(true);
                           setShowUserDropdown(false);
                         }}
-                        className="mx-2 w-[calc(100%-1rem)] flex items-center gap-3 px-3 py-2.5 text-sm text-[var(--color-accent)] hover:bg-[var(--color-accent)]/10 rounded-xl transition-all group"
+                        className="mx-3 w-[calc(100%-1.5rem)] flex items-center gap-4 px-4 py-3 text-sm text-indigo-400 hover:bg-indigo-500/5 rounded-2xl transition-all group"
                       >
-                        <div className="w-8 h-8 rounded-lg bg-[var(--color-accent)]/5 flex items-center justify-center group-hover:bg-[var(--color-accent)]/20 transition-colors">
+                        <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center group-hover:bg-indigo-500/20 transition-colors border border-indigo-500/10">
                           <Send className="h-4 w-4" />
                         </div>
-                        <span className="font-bold">Send STX</span>
+                        <span className="font-black text-xs uppercase tracking-widest">Transfer Assets</span>
                       </button>
 
-                      <Link href="/settings" onClick={() => setShowUserDropdown(false)} className="mx-2 flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-all group">
-                        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
+                      <Link href="/settings" onClick={() => setShowUserDropdown(false)} className="mx-3 flex items-center gap-4 px-4 py-3 text-sm text-gray-400 hover:bg-white/[0.03] hover:text-white rounded-2xl transition-all group">
+                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/5">
                           <Settings className="h-4 w-4" />
                         </div>
-                        <span className="font-bold">Settings</span>
+                        <span className="font-black text-xs uppercase tracking-widest">Node Settings</span>
                       </Link>
 
-                      <div className="mt-2 pt-2 border-t border-white/[0.03]">
+                      <div className="mt-3 pt-3 border-t border-white/[0.03]">
                         <button 
                           onClick={() => {
                             dispatch(logout());
                             router.push('/');
                           }}
-                          className="mx-2 w-[calc(100%-1rem)] flex items-center gap-3 px-3 py-2.5 text-sm text-red-500/80 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all group"
+                          className="mx-3 w-[calc(100%-1.5rem)] flex items-center gap-4 px-4 py-3 text-sm text-red-500/60 hover:text-red-500 hover:bg-red-500/10 rounded-2xl transition-all group"
                         >
-                          <div className="w-8 h-8 rounded-lg bg-red-500/5 flex items-center justify-center group-hover:bg-red-500/20 transition-colors">
+                          <div className="w-10 h-10 rounded-xl bg-red-500/5 flex items-center justify-center border border-red-500/10">
                             <LogOut className="h-4 w-4" />
                           </div>
-                          <span className="font-bold">Disconnect</span>
+                          <span className="font-black text-xs uppercase tracking-widest">Kill Session</span>
                         </button>
                       </div>
                     </div>
@@ -212,10 +202,10 @@ export default function AppHeader({ onMenuClick }: AppHeaderProps) {
               ) : (
                 <button 
                   onClick={() => void handleConnectWallet()}
-                  className="flex items-center gap-2 rounded-full bg-[var(--color-secondary)] pl-2 pr-5 py-2 text-sm font-black text-white transition-all hover:bg-opacity-90 hover:shadow-[0_0_20px_rgba(99,102,241,0.4)] active:scale-95"
+                  className="flex items-center gap-3 rounded-[1.5rem] bg-white text-black px-8 py-3.5 text-[11px] font-black uppercase tracking-[0.2em] transition-all hover:bg-gray-100 active:scale-95 shadow-2xl"
                 >
-                  <Wallet className="h-4 w-4 ml-3" />
-                  <span>Connect Wallet</span>
+                  <Wallet className="h-4 w-4" />
+                  Initialize
                 </button>
               )
             )}
@@ -228,31 +218,6 @@ export default function AppHeader({ onMenuClick }: AppHeaderProps) {
       isOpen={showSendModal} 
       onClose={() => setShowSendModal(false)} 
     />
-    
-    {/* Mobile Protocol HUD - Sticky below header */}
-    {hasMounted && isConnected && (
-      <div className="md:hidden sticky top-16 z-30 w-full bg-black/80 backdrop-blur-md border-b border-white/5 px-4 py-3 animate-in slide-in-from-top-4 duration-700">
-        <div className="flex items-center justify-between gap-2 overflow-x-auto pb-1 no-scrollbar">
-           {/* $GM HUD */}
-           <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-yellow-500/5 border border-yellow-500/10 shrink-0">
-              <div className="w-4 h-4 rounded-full bg-yellow-500/20 text-yellow-500 text-[9px] font-black italic flex items-center justify-center">$</div>
-              <span className="text-[10px] font-black text-white">{(gmBalance / 1000000).toLocaleString(undefined, { minimumFractionDigits: 1 })}</span>
-           </div>
-           
-           {/* Streak HUD */}
-           <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-orange-500/5 border border-orange-500/10 shrink-0">
-              <Home className="w-3 h-3 text-orange-500 fill-orange-500/20" />
-              <span className="text-[10px] font-black text-white">{streak}d</span>
-           </div>
-
-           {/* Rep HUD */}
-           <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-blue-500/5 border border-blue-500/10 shrink-0">
-              <User className="w-3 h-3 text-blue-500" />
-              <span className="text-[10px] font-black text-white">{(points / 10).toLocaleString()}</span>
-           </div>
-        </div>
-      </div>
-    )}
     </>
   );
 }
