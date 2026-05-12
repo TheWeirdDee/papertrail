@@ -7,6 +7,8 @@
 
 import { APP_CONFIG } from './config';
 import { toast } from 'react-hot-toast';
+import { store } from './store';
+import { addTransaction, updateTransactionStatus } from './features/txSlice';
 
 export const appDetails = {
   name: 'GM DApp',
@@ -192,7 +194,16 @@ export const callContract = async (options: any) => {
       network: APP_CONFIG.network,
       onFinish: (data: any) => {
         console.log('--- TRANSACTION BROADCASTED ---', data.txId);
-        toast.success('Transaction sent! Waiting for confirmation...', { id: data.txId });
+        
+        // Track in Redux
+        store.dispatch(addTransaction({
+           txId: data.txId,
+           status: 'pending',
+           type: options.functionName.replace(/-/g, ' ').toUpperCase(),
+           timestamp: new Date().toISOString()
+        }));
+
+        toast.success('Transaction sent! Tracking status...', { id: data.txId });
         if (options.onFinish) options.onFinish(data);
         pollTransactionStatus(data.txId);
       },
@@ -215,11 +226,15 @@ async function pollTransactionStatus(txId: string) {
       const response = await fetch(`${apiBase}/extended/v1/tx/${txId}`);
       if (!response.ok) return;
       const data = await response.json();
+      
       if (data.tx_status === 'success') {
+        store.dispatch(updateTransactionStatus({ txId, status: 'success' }));
         toast.success('Transaction confirmed!', { id: txId });
         return;
       }
+      
       if (data.tx_status === 'abort_by_response' || data.tx_status === 'abort_by_post_condition') {
+        store.dispatch(updateTransactionStatus({ txId, status: 'failed' }));
         const reason = data.tx_result?.repr || '';
         let msg = 'Transaction failed.';
         if (reason.includes('u101')) msg = 'Cooldown active (24h).';
