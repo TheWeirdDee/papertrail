@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/lib/store';
-import { setPosts, addPost } from '@/lib/features/postsSlice';
+import { setPosts, addPost, fetchPostsFromSupabase } from '@/lib/features/postsSlice';
 import CreatePostModal from '@/components/CreatePostModal';
 import { toast } from 'react-hot-toast';
 
@@ -34,30 +34,7 @@ export default function FeedContent() {
   const fetchPosts = async (silent = false) => {
     if (!silent) setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('posts')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (error) throw error;
-      
-      const mappedPosts: Post[] = (data || []).map(p => ({
-        id: p.id,
-        content: p.content,
-        authorAddress: p.author_address,
-        authorUsername: p.author_username,
-        avatar: p.avatar_url,
-        timestamp: p.created_at,
-        txId: p.tx_id,
-        reactions: p.reactions || {},
-        commentsCount: p.comments_count || 0,
-        isPro: p.is_pro || false,
-        mediaUrl: p.media_url,
-        currentUserReaction: null
-      }));
-
-      dispatch(setPosts(mappedPosts));
+      await dispatch(fetchPostsFromSupabase()).unwrap();
     } catch (err: any) {
       toast.error("Failed to sync protocol feed");
     } finally {
@@ -75,7 +52,26 @@ export default function FeedContent() {
       .channel('protocol-feed-live')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts' }, (payload) => {
         setNewPostsAvailable(true);
-        // Add to store immediately if it's near the top
+        
+        // Map the new post to the expected frontend shape
+        const newPost: Post = {
+          id: payload.new.id,
+          content: payload.new.content,
+          authorAddress: payload.new.address,
+          timestamp: payload.new.created_at,
+          txId: payload.new.tx_id,
+          reactions: { gm: 0, fire: 0, laugh: 0 },
+          commentsCount: 0,
+          repostsCount: 0,
+          points: payload.new.points || 0,
+          isPro: payload.new.is_pro || false,
+          mediaUrl: payload.new.media_url,
+          pollData: payload.new.poll_data,
+          currentUserReaction: null
+        };
+        
+        dispatch(addPost(newPost));
+
         if (window.scrollY < 100) {
            fetchPosts(true);
         }
