@@ -16,13 +16,13 @@ import {
   Sparkles
 } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '@/lib/store';
+import { AppDispatch, RootState } from '@/lib/store';
 import { setPosts, addPost, fetchPostsFromSupabase } from '@/lib/features/postsSlice';
 import CreatePostModal from '@/components/CreatePostModal';
 import { toast } from 'react-hot-toast';
 
 export default function FeedContent() {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const posts = useSelector((state: RootState) => state.posts.feed);
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
