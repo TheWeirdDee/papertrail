@@ -157,6 +157,14 @@ const postsSlice = createSlice({
   name: 'posts',
   initialState,
   reducers: {
+    setPosts: (state, action: PayloadAction<Post[]>) => {
+      state.feed = action.payload;
+    },
+    addPost: (state, action: PayloadAction<Post>) => {
+      if (!state.feed.find(p => p.id === action.payload.id)) {
+        state.feed = [action.payload, ...state.feed];
+      }
+    },
     addOptimisticPost: (state, action: PayloadAction<Post>) => {
       state.feed = [action.payload, ...state.feed];
     },
@@ -222,5 +230,5 @@ const postsSlice = createSlice({
   },
 });
 
-export const { addOptimisticPost, removeOptimisticPost, addRealtimePost, reactToPost } = postsSlice.actions;
+export const { setPosts, addPost, addOptimisticPost, removeOptimisticPost, addRealtimePost, reactToPost } = postsSlice.actions;
 export default postsSlice.reducer;
