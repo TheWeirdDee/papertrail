@@ -23,7 +23,7 @@ import { toast } from 'react-hot-toast';
 
 export default function FeedContent() {
   const dispatch = useDispatch();
-  const posts = useSelector((state: RootState) => state.posts.posts);
+  const posts = useSelector((state: RootState) => state.posts.feed);
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
