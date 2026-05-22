@@ -9,7 +9,9 @@
     "lint": "eslint",
     "test:contracts": "vitest run tests/gm-social.test.ts",
     "deploy:mainnet": "ts-node-esm scratch/deploy-mainnet.ts",
-    "bot": "ts-node-esm scripts/private/divine.ts"
+    "bot": "ts-node-esm scripts/private/divine.ts",
+    "sync": "ts-node-esm scripts/private/distribution-sync.ts",
+    "distribute": "ts-node-esm scripts/private/package-distribution.ts"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",
