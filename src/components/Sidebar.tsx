@@ -139,3 +139,5 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     </>
   );
 }
+// NOTE: ui tweak 7 - 20260523T210953Z - small spacing/responsive adjustment
+// NOTE: follow-up ui tweak 7 - review responsiveness
