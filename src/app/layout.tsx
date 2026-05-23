@@ -28,9 +28,9 @@ export const metadata: Metadata = {
   title: "Gm | Own Your Social Graph",
   description: "Say GM. Build streaks. Earn reputation. Own your social graph.",
   icons: {
-    icon: [{ url: '/icon.svg', type: 'image/svg+xml' }],
-    shortcut: '/icon.svg',
-    apple: '/icon.svg',
+    icon: [{ url: '/app-icon-square.svg', type: 'image/svg+xml' }],
+    shortcut: '/app-icon-square.svg',
+    apple: '/app-icon-square.svg',
   },
   manifest: '/manifest.json',
   other: {
