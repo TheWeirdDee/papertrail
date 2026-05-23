@@ -30,16 +30,28 @@ export default function NotificationBell() {
 
     // Fetch initial notifications
     const fetchNotifications = async () => {
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('recipient', address)
-        .order('created_at', { ascending: false })
-        .limit(20);
+      try {
+        const { data, error } = await supabase
+          .from('notifications')
+          .select('*')
+          .eq('recipient', address)
+          .order('created_at', { ascending: false })
+          .limit(20);
 
-      if (!error && data) {
-        setNotifications(data);
-        setUnreadCount(data.filter(n => !n.read).length);
+        if (error) {
+          console.warn('--- NOTIFICATIONS TABLE CHECK ---', error.message);
+          if (error.code === 'PGRST116' || error.message.includes('relation "public.notifications" does not exist')) {
+            console.info('Tip: Run the SQL script in src/app/api/notifications_migration.sql in your Supabase SQL Editor to create the notifications table.');
+          }
+          return;
+        }
+
+        if (data) {
+          setNotifications(data);
+          setUnreadCount(data.filter(n => !n.read).length);
+        }
+      } catch (err) {
+        console.error('Failed to fetch notifications:', err);
       }
     };
 
