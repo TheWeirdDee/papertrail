@@ -207,3 +207,4 @@ export default function Navbar() {
     </nav>
   );
 }
+// NOTE: ui tweak 6 - 20260523T210953Z - small spacing/responsive adjustment
