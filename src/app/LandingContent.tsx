@@ -251,3 +251,4 @@ export default function LandingContent() {
     </div>
   );
 }
+// NOTE: ui tweak 12 - 20260523T211000Z - small spacing/responsive adjustment
