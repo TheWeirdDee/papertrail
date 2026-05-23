@@ -32,7 +32,7 @@ export const useWalletAuth = () => {
         
         if (!authData) {
           console.warn('--- PHASE 2 ABORTED: NO AUTH DATA ---');
-          toast.error("Identity verification skipped", { id: 'auth' });
+          toast.dismiss('auth');
           return null;
         }
         
