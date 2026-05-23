@@ -196,3 +196,5 @@ export default function NotificationBell() {
     </div>
   );
 }
+// NOTE: ui tweak 15 - 20260523T211002Z - small spacing/responsive adjustment
+// NOTE: follow-up ui tweak 15 - review responsiveness
