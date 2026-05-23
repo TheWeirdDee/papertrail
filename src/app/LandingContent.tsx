@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { 
   ArrowRight, 
@@ -122,7 +122,7 @@ export default function LandingContent() {
       <div className="relative z-10">
         
         {/* 2. Hero Section */}
-        <section className="pt-32 pb-20 px-6 lg:pt-48 lg:pb-32 overflow-hidden">
+        <section className="pt-20 pb-20 px-6 lg:pt-48 lg:pb-32 overflow-hidden">
           <div className="max-w-7xl mx-auto text-center space-y-12">
             
             {/* Announcement Badge */}
@@ -236,7 +236,7 @@ export default function LandingContent() {
            <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-10 opacity-50">
               <div className="flex items-center gap-3">
                  <div className="h-8 w-8 bg-white rounded-lg flex items-center justify-center text-black font-black text-xs">GM</div>
-                 <span className="text-xs font-black uppercase tracking-widest text-white">GM Protocol © 2026</span>
+                 <span className="text-xs font-black uppercase tracking-widest text-white">GM Protocol Â© 2026</span>
               </div>
               <div className="flex items-center gap-8 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
                  <a href="#" className="hover:text-white transition-colors">Explorer</a>
@@ -252,3 +252,4 @@ export default function LandingContent() {
   );
 }
 // NOTE: ui tweak 12 - 20260523T211000Z - small spacing/responsive adjustment
+
