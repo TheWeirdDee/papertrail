@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { 
   ArrowRight, 
@@ -121,8 +121,11 @@ export default function LandingContent() {
 
       <div className="relative z-10">
         
+        {/* 2. Hero Section */}
+        <section className="pt-20 pb-20 px-6 lg:pt-48 lg:pb-32 overflow-hidden">
       {/* 2. Hero Section */}
       <section className="pt-20 pb-16 px-6 lg:pt-20 lg:pb-24 overflow-hidden">
+
           <div className="max-w-7xl mx-auto text-center space-y-12">
             
             {/* Announcement Badge */}
@@ -251,5 +254,4 @@ export default function LandingContent() {
     </div>
   );
 }
-// NOTE: ui tweak 1 - 20260523T210948Z - small spacing/responsive adjustment
 
