@@ -163,7 +163,6 @@ export default function LandingContent() {
                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/80">Mainnet Protocol v5.0 Live</span>
             </div>
           </div>
-        </div>
       </section>
 
 
