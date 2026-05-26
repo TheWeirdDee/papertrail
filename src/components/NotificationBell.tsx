@@ -140,7 +140,7 @@ export default function NotificationBell() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-4 w-[350px] bg-[#0A0A0A] border border-white/10 rounded-[2.5rem] shadow-[0_30px_100px_rgba(0,0,0,0.8)] z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
+        <div className="absolute right-0 sm:-right-4 mt-4 w-[90vw] sm:w-[350px] bg-[#0A0A0A] border border-white/10 rounded-[2.5rem] shadow-[0_30px_100px_rgba(0,0,0,0.8)] z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
           <div className="p-6 border-b border-white/5 flex items-center justify-between">
             <h3 className="text-xs font-black text-white uppercase tracking-widest">Social Activity</h3>
             <button 
@@ -195,4 +195,4 @@ export default function NotificationBell() {
       )}
     </div>
   );
-}
+ 
