@@ -63,7 +63,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       <aside className={`
         fixed inset-y-0 left-0 z-50 bg-[#050505] border-r border-white/5 p-6 flex flex-col gap-8 transition-all duration-300 ease-in-out lg:static lg:translate-x-0 lg:h-full lg:sticky lg:top-0
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        w-72 xl:w-24 xl:px-4 xl:items-center
+        w-72 xl:w-24 xl:px-4 xl:items-center overflow-y-auto pb-24 lg:pb-6 custom-scrollbar
       `}>
         {/* Sidebar Header (Mobile Only) */}
         <div className="flex items-center justify-between lg:hidden mb-4 w-full">
