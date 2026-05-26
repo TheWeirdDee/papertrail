@@ -32,6 +32,7 @@ export const useWalletAuth = () => {
         
         if (!authData) {
           console.warn('--- PHASE 2 ABORTED: NO AUTH DATA ---');
+          dispatch(setSessionToken(null));
           toast.dismiss('auth');
           return null;
         }
@@ -53,6 +54,7 @@ export const useWalletAuth = () => {
         }
       } catch (signErr: any) {
         console.error('--- PHASE 2 ERROR ---', signErr);
+        dispatch(setSessionToken(null));
         toast.error('Identity verification failed: ' + signErr.message, { id: 'auth' });
         return null;
       }
@@ -60,6 +62,7 @@ export const useWalletAuth = () => {
       return null;
     } catch (err: any) {
       console.error('--- UNIFIED AUTH CRASH ---', err);
+      dispatch(setSessionToken(null));
       toast.error(err.message || 'Login failed', { id: 'auth' });
       return null;
     }
