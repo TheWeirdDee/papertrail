@@ -12,11 +12,17 @@ import {
   Flame,
   Award,
   ChevronRight,
-  Heart
+  Heart,
+  Sparkles,
+  CheckCircle2,
+  Layers,
+  UserPlus,
+  Trash2,
+  ShieldAlert
 } from 'lucide-react';
 
 import Link from 'next/link';
-import { ArrowRight, Sparkles, CheckCircle2, Shield, Layers, Users } from 'lucide-react';
+
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -149,20 +155,9 @@ export default function LandingContent() {
               </button>
               <div className="h-[1px] w-12 bg-gray-600 hidden sm:block"></div>
               <span className="text-sm text-gray-500 font-mono tracking-wider uppercase">Built on Stacks</span>
-
-        {/* 2. Hero Section */}
-        <section className="pt-20 pb-20 px-6 lg:pt-48 lg:pb-32 overflow-hidden">
-      {/* 2. Hero Section */}
-      <section className="pt-20 pb-16 px-6 lg:pt-20 lg:pb-24 overflow-hidden">
-
-          <div className="max-w-7xl mx-auto text-center space-y-12">
-            
-            {/* Announcement Badge */}
-            <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-xl animate-in fade-in slide-in-from-top-4 duration-700">
-               <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div>
-               <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/80">Mainnet Protocol v5.0 Live</span>
             </div>
           </div>
+        </div>
       </section>
 
 
