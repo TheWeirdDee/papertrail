@@ -16,6 +16,8 @@ describe('gm-social-v14 contract', () => {
     // Set gm-social-v14-v12 as the governor for gm-token-v14
     const deployer = accounts.get('deployer')!;
     simnet.callPublicFn('gm-token-v14', 'set-governor', [Cl.principal(`${deployer}.gm-social-v14`)], deployer);
+    // Ensure gm-social contract is set as the token bridge contract
+    simnet.callPublicFn('gm-social-v14', 'set-token-contract', [Cl.principal(`${deployer}.gm-token-v14`)], deployer);
   });
 
   it('allows a user to say GM', () => {
