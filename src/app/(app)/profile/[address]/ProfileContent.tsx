@@ -14,13 +14,14 @@ const FollowersContent = dynamic(() => import('@/app/(app)/followers/FollowersCo
 import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/store';
 import Link from 'next/link';
-import { ArrowLeft, Clock } from 'lucide-react';
+import { ArrowLeft, Clock, Zap, X } from 'lucide-react';
 
 export default function ProfileContent({ params }: { params: Promise<{ address: string }> }) {
   const unwrappedParams = use(params);
   const targetAddress = unwrappedParams.address;
   
   const [activeTab, setActiveTab] = useState('profile');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const feed = useSelector((state: RootState) => state.posts.feed);
   const { address: currentAddress, isConnected } = useSelector((state: RootState) => state.user);
   
@@ -69,14 +70,26 @@ export default function ProfileContent({ params }: { params: Promise<{ address: 
       
       {/* Top Header Label */}
       <div className="flex items-center justify-between mb-10 px-4">
-         <h1 className="text-2xl font-black text-white tracking-widest grayscale opacity-30 uppercase">
+         <h1 className="text-2xl font-black text-white tracking-widest grayscale opacity-30 uppercase flex items-center gap-4">
            {activeTab.replace('-', ' ')}
+           <button 
+             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
+             className="lg:hidden p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-white"
+           >
+             {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Zap className="h-5 w-5 text-[var(--color-accent)]" />}
+           </button>
          </h1>
          <Link href="/dashboard" className="flex items-center gap-2 text-gray-600 hover:text-white transition-colors group">
             <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
             <span className="text-[10px] font-black uppercase tracking-widest">Dashboard</span>
          </Link>
       </div>
+
+      {isMobileMenuOpen && (
+        <div className="lg:hidden mb-8 bg-[#0A0A0A] border border-white/10 rounded-[2rem] p-4 shadow-2xl animate-in fade-in slide-in-from-top-4 z-40 relative">
+           <ProfileSidebar activeTab={activeTab} onTabChange={(tab) => { setActiveTab(tab); setIsMobileMenuOpen(false); }} />
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         
