@@ -6,12 +6,12 @@ telemetry = true
 requirements = []
 epoch = "2.5"
 
-[contracts.gm-social-final-v1]
+[contracts.gm-social-v14]
 path = "contracts/gm-social.clar"
 clarity_version = 2
 epoch = "2.5"
 
-[contracts.gm-token-final-v1]
+[contracts.gm-token-v14]
 path = "contracts/gm-token.clar"
 clarity_version = 2
 epoch = "2.5"
