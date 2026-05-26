@@ -139,7 +139,7 @@ export default function AppHeader({ onMenuClick }: AppHeaderProps) {
                     <IdentityAvatar address={address} src={avatar} size="xs" className="h-9 w-9 !rounded-xl ring-2 ring-white/5 group-hover:ring-[var(--color-accent)]/30 transition-all" />
                     <div className="hidden sm:flex flex-col items-start">
                        <span className="text-[11px] font-black text-white tracking-tight leading-none mb-0.5">
-                         {username || (address ? `${address.substring(0, 4)}...${address.substring(address.length - 4)}` : 'Guest')}
+                         {username || 'Guest'}
                        </span>
                        <span className="text-[9px] font-bold text-gray-600 uppercase tracking-widest leading-none">Identity Node</span>
                     </div>
@@ -149,7 +149,7 @@ export default function AppHeader({ onMenuClick }: AppHeaderProps) {
                   </button>
 
                   {showUserDropdown && (
-                    <div className="absolute right-0 mt-5 w-64 rounded-[2.5rem] border border-white/10 bg-[#0A0A0A] shadow-[0_30px_100px_rgba(0,0,0,0.8)] py-4 overflow-hidden z-50 animate-in fade-in slide-in-from-top-4 duration-500">
+                    <div className="absolute right-0 sm:-right-4 mt-5 w-[90vw] sm:w-64 rounded-[2.5rem] border border-white/10 bg-[#0A0A0A] shadow-[0_30px_100px_rgba(0,0,0,0.8)] py-4 overflow-hidden z-50 animate-in fade-in slide-in-from-top-4 duration-500">
                       <div className="px-6 py-4 border-b border-white/[0.03] mb-3 bg-white/[0.01]">
                         <p className="text-[9px] uppercase tracking-[0.3em] text-gray-600 font-black mb-1.5">Authorized Wallet</p>
                         <p className="text-[10px] font-mono text-gray-400 truncate opacity-60">{address}</p>
