@@ -1,5 +1,20 @@
 'use client';
 
+import { 
+  ArrowRight, 
+  Globe, 
+  Shield, 
+  Zap, 
+  MessageCircle, 
+  Users, 
+  TrendingUp, 
+  BarChart3,
+  Flame,
+  Award,
+  ChevronRight,
+  Heart
+} from 'lucide-react';
+
 import Link from 'next/link';
 import { ArrowRight, Sparkles, CheckCircle2, Shield, Layers, Users } from 'lucide-react';
 import { useEffect, useRef } from 'react';
@@ -115,8 +130,7 @@ export default function LandingContent() {
            <img src="/hero_hands.png" alt="Digital connection" className="w-full h-full object-cover mix-blend-screen opacity-60" />
         </div>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-96 w-96 rounded-full bg-[var(--color-accent)] opacity-10 blur-[150px] z-0"></div>
-        
-        <div className="container mx-auto max-w-5xl relative z-10 flex flex-col items-center text-center gap-12">
+         <div className="container mx-auto max-w-5xl relative z-10 flex flex-col items-center text-center gap-12">
           <div className="space-y-8 max-w-4xl flex flex-col items-center">
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-black tracking-tight leading-[1.1] text-white">
               Say GM. Build streaks. <br className="hidden md:block" />
@@ -135,6 +149,18 @@ export default function LandingContent() {
               </button>
               <div className="h-[1px] w-12 bg-gray-600 hidden sm:block"></div>
               <span className="text-sm text-gray-500 font-mono tracking-wider uppercase">Built on Stacks</span>
+
+        {/* 2. Hero Section */}
+        <section className="pt-20 pb-20 px-6 lg:pt-48 lg:pb-32 overflow-hidden">
+      {/* 2. Hero Section */}
+      <section className="pt-20 pb-16 px-6 lg:pt-20 lg:pb-24 overflow-hidden">
+
+          <div className="max-w-7xl mx-auto text-center space-y-12">
+            
+            {/* Announcement Badge */}
+            <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-xl animate-in fade-in slide-in-from-top-4 duration-700">
+               <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div>
+               <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/80">Mainnet Protocol v5.0 Live</span>
             </div>
           </div>
         </div>

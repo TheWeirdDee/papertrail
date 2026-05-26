@@ -38,14 +38,14 @@ export default function TransactionTracker() {
         }`}
       >
         <Activity className={`h-4 w-4 ${pendingCount > 0 ? 'animate-pulse' : ''}`} />
-        <span className="text-[10px] font-black uppercase tracking-[0.2em]">
+        <span className="hidden sm:inline text-[10px] font-black uppercase tracking-[0.2em]">
           {pendingCount > 0 ? `${pendingCount} Processing` : 'Transactions'}
         </span>
-        <ChevronDown className={`h-3 w-3 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`hidden sm:inline h-3 w-3 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-4 w-[380px] bg-[#0A0A0A] border border-white/10 rounded-[2.5rem] shadow-[0_30px_100px_rgba(0,0,0,0.8)] z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
+        <div className="absolute right-0 sm:-right-4 mt-4 w-[90vw] sm:w-[380px] bg-[#0A0A0A] border border-white/10 rounded-[2.5rem] shadow-[0_30px_100px_rgba(0,0,0,0.8)] z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
           <div className="p-6 border-b border-white/5 flex items-center justify-between">
             <div className="space-y-0.5">
                <h3 className="text-xs font-black text-white uppercase tracking-widest">On-Chain Ledger</h3>
