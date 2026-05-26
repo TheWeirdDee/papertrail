@@ -247,7 +247,9 @@ const userSlice = createSlice({
         } else {
           state.sessionToken = null;
           state.isConnected = false;
+          state.address = null;
           localStorage.removeItem('gm_session_token');
+          localStorage.removeItem('gm_user_address');
         }
       }
     }
