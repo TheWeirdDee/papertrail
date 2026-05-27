@@ -116,6 +116,21 @@ clarinet check
 npm test
 ```
 
+### Divine Bot Helpers
+
+The repository includes helper scripts for the `divine.ts` friend-farmer bot.
+
+```bash
+npm run bot
+npm run divine:balance-check
+npm run divine:username-sync
+npm run divine:state-report
+npm run divine:reset-state
+npm run divine:health-check
+```
+
+Use `.env` or `.env.example` to configure the bot flags.
+
 ---
 
 ## Roadmap
