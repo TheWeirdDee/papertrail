@@ -1,7 +1,14 @@
+/**
+ * Redux User Slice
+ * Manages user authentication state, profile data, and blockchain integration with security validations
+ */
+
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { User } from '../types';
 import { getUserSession, getUserOnChainData, getOnChainBlockHeight } from '../stacks';
 import { supabase } from '../supabase';
+import { isValidStacksAddress } from '../utils/validation';
+import { logError, logInfo } from '../utils/logger';
 import type { RootState } from '../store';
 
 interface UserState {
@@ -38,31 +45,56 @@ const getInitialOptimisticState = () => {
   return false;
 };
 
+/**
+ * Safely retrieves and validates address from localStorage
+ */
 const getInitialAddress = () => {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('gm_user_address');
+  const address = localStorage.getItem('gm_user_address');
+  return address && isValidStacksAddress(address) ? address : null;
 };
 
+/**
+ * Safely retrieves username with length validation
+ */
 const getInitialUsername = (address: string | null) => {
   if (typeof window === 'undefined' || !address) return null;
-  return localStorage.getItem(`username_${address}`);
+  const username = localStorage.getItem(`username_${address}`);
+  // Validate username length and format
+  return username && username.length > 0 && username.length <= 32 ? username : null;
 };
 
+/**
+ * Safely retrieves and validates session token JWT format
+ */
 const getInitialSessionToken = () => {
   if (typeof window === 'undefined') return null;
   const token = localStorage.getItem('gm_session_token');
-  if (token && token.split('.').length !== 3) {
+  if (!token) return null;
+  
+  // Basic JWT validation: must have 3 parts separated by dots
+  const parts = token.split('.');
+  if (parts.length !== 3) {
     localStorage.removeItem('gm_session_token');
     return null;
   }
+  
   return token;
 };
 
+/**
+ * Safely retrieves numeric value from localStorage with bounds checking
+ */
 const getInitialNum = (key: string, address: string | null) => {
   if (typeof window === 'undefined' || !address) return 0;
-  return Number(localStorage.getItem(`${key}_${address}`) || 0);
+  const value = Number(localStorage.getItem(`${key}_${address}`) || 0);
+  // Ensure value is a valid number and non-negative
+  return Number.isFinite(value) && value >= 0 ? value : 0;
 };
 
+/**
+ * Safely retrieves boolean value from localStorage
+ */
 const getInitialBool = (key: string, address: string | null) => {
   if (typeof window === 'undefined' || !address) return false;
   return localStorage.getItem(`${key}_${address}`) === 'true';
@@ -127,6 +159,12 @@ const userSlice = createSlice({
       }
     },
     setAddress(state, action: PayloadAction<string>) {
+      // Validate address before setting
+      if (!isValidStacksAddress(action.payload)) {
+        logError('userSlice', 'Invalid address format', { address: action.payload });
+        return;
+      }
+      
       state.address = action.payload;
       state.isConnected = true;
       if (typeof window !== 'undefined') {
@@ -226,9 +264,22 @@ const userSlice = createSlice({
       }
     },
     setUsername(state, action: PayloadAction<string>) {
-      state.username = action.payload;
+      // Validate username: 3-32 chars, alphanumeric, hyphens, underscores
+      const username = action.payload;
+      if (!username || username.length < 3 || username.length > 32) {
+        logError('userSlice', 'Invalid username length', { length: username.length });
+        return;
+      }
+      
+      // Check alphanumeric + hyphens + underscores only
+      if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+        logError('userSlice', 'Username contains invalid characters');
+        return;
+      }
+      
+      state.username = username;
       if (typeof window !== 'undefined' && state.address) {
-        localStorage.setItem(`username_${state.address}`, action.payload);
+        localStorage.setItem(`username_${state.address}`, username);
       }
     },
     setOptimisticPro(state, action: PayloadAction<boolean>) {
@@ -240,16 +291,29 @@ const userSlice = createSlice({
     setSessionToken(state, action: PayloadAction<string | null>) {
       if (typeof window !== 'undefined') {
         const token = action.payload;
-        if (token && token.split('.').length === 3) {
-          state.sessionToken = token;
-          state.isConnected = true;
-          localStorage.setItem('gm_session_token', token);
+        
+        // Validate token format: JWT must have 3 parts
+        if (token && typeof token === 'string') {
+          const parts = token.split('.');
+          if (parts.length === 3 && parts.every(part => part.length > 0)) {
+            state.sessionToken = token;
+            state.isConnected = true;
+            localStorage.setItem('gm_session_token', token);
+            logInfo('userSlice', 'Session token set');
+          } else {
+            // Invalid token format
+            logError('userSlice', 'Invalid token format');
+            state.sessionToken = null;
+            state.isConnected = false;
+            state.address = null;
+            localStorage.removeItem('gm_session_token');
+            localStorage.removeItem('gm_user_address');
+          }
         } else {
+          // Clearing token
           state.sessionToken = null;
           state.isConnected = false;
-          state.address = null;
           localStorage.removeItem('gm_session_token');
-          localStorage.removeItem('gm_user_address');
         }
       }
     }
