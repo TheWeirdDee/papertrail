@@ -1,12 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
+import { logErrorLevel, logWarn, logInfo } from './utils/logger';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || '').trim();
+const supabaseAnonKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').trim();
 
-if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
-  console.error('CRITICAL: NEXT_PUBLIC_SUPABASE_URL is missing or invalid. Check your .env.local!');
+if (!supabaseUrl || supabaseUrl.includes('placeholder') || !supabaseUrl.startsWith('http')) {
+  logErrorLevel('supabase', 'CRITICAL: NEXT_PUBLIC_SUPABASE_URL missing or invalid');
 }
 
+if (!supabaseAnonKey) {
+  logWarn('supabase', 'NEXT_PUBLIC_SUPABASE_ANON_KEY is missing; some features may not work in browser');
+}
 
 export const supabase = createClient(
   supabaseUrl || 'https://missing-supabase-url.co', 
@@ -65,8 +69,8 @@ export async function uploadFile(bucket: 'media' | 'avatars', file: File): Promi
 
     const { url } = await response.json();
     return url;
-  } catch (error) {
-    console.error(`Upload error to ${bucket}:`, error);
+  } catch (error: any) {
+    logErrorLevel('supabase.uploadFile', `Upload error to ${bucket}`, undefined, error instanceof Error ? error : undefined);
     return null;
   }
 }
