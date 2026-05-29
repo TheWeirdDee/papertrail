@@ -9,6 +9,7 @@ import { APP_CONFIG } from './config';
 import { toast } from 'react-hot-toast';
 import { store } from './store';
 import { addTransaction, updateTransactionStatus } from './features/txSlice';
+import { logDebug, logInfo, logWarn, logErrorLevel, logSecurityEvent } from './utils/logger';
 
 export const appDetails = {
   name: 'GM DApp',
@@ -172,17 +173,18 @@ export const callContract = async (options: any) => {
     try {
       const userData = session.loadUserData();
       sessionAddress = userData.profile?.stxAddress?.[APP_CONFIG.isMainnet ? 'mainnet' : 'testnet'];
-    } catch (e) {
-      console.warn('--- SESSION ERROR ---', e);
+    } catch (e: any) {
+      logWarn('stacks.getUserSession', 'SESSION ERROR', { error: e?.message });
     }
   }
 
   if (storedAddress && sessionAddress && storedAddress !== sessionAddress) {
     toast.error('Wallet account mismatch! Please re-login to Account ' + sessionAddress.substring(0, 8) + '...');
+    logSecurityEvent('Wallet', 'Account mismatch during contract call', 'high', { storedAddress, sessionAddress });
     return;
   }
 
-  console.log('--- CONTRACT CALL ---', options.functionName);
+  logInfo('stacks.callContract', `contract call ${options.functionName}`);
   
   try {
     await openContractCall({
@@ -193,7 +195,7 @@ export const callContract = async (options: any) => {
       appDetails,
       network: APP_CONFIG.network,
       onFinish: (data: any) => {
-        console.log('--- TRANSACTION BROADCASTED ---', data.txId);
+        logInfo('stacks.callContract', 'TRANSACTION BROADCASTED', { txId: data.txId });
         
         // Track in Redux
         store.dispatch(addTransaction({
@@ -208,13 +210,13 @@ export const callContract = async (options: any) => {
         pollTransactionStatus(data.txId);
       },
       onCancel: () => {
-        console.log('--- TRANSACTION CANCELLED ---');
+        logWarn('stacks.callContract', 'TRANSACTION CANCELLED');
         toast.error('Transaction cancelled by user.');
       }
     });
   } catch (err: any) {
-    console.error('--- CONTRACT CALL ERROR ---', err);
-    toast.error('Failed to open wallet: ' + (err.message || 'Unknown error'));
+    logErrorLevel('stacks.callContract', 'CONTRACT CALL ERROR', undefined, err instanceof Error ? err : undefined);
+    toast.error('Failed to open wallet: ' + (err?.message || 'Unknown error'));
   }
 };
 
@@ -268,7 +270,7 @@ export const tipAuthor = async (recipient: string, amountStx: number, senderAddr
     postConditionMode: 0x01,
     postConditions: [postCondition],
     onFinish: (data: any) => {
-      console.log('--- TIP BROADCASTED ---', data.txId);
+      logInfo('stacks.tipAuthor', 'TIP BROADCASTED', { txId: data.txId });
     }
   });
 };
@@ -286,12 +288,12 @@ export const signInWithWallet = async (address: string): Promise<{ token: string
       (typeof window !== 'undefined' ? (window as any).StacksProvider?.openSignatureRequest : null);
     
     if (!openSignatureRequest) {
-      console.error('--- DEBUG: @stacks/connect exports ---', Object.keys(connect));
+      logErrorLevel('stacks.signIn', 'SIGNATURE FUNCTION MISSING', { exports: Object.keys(connect) });
       toast.error('Wallet signature function not found. Please try a different browser or update your wallet extension.');
       throw new Error('Wallet signature function not found.');
     }
 
-    console.log('--- SIGN_IN: FETCHING NONCE FOR', address);
+    logDebug('stacks.signIn', `fetching nonce for ${address}`);
     const response = await fetch('/api/auth/nonce', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -299,22 +301,22 @@ export const signInWithWallet = async (address: string): Promise<{ token: string
     });
     
     if (!response.ok) {
-      const errData = await response.json();
-      console.error('--- SIGN_IN: NONCE FETCH FAILED ---', errData);
+      const errData = await response.json().catch(() => ({}));
+      logErrorLevel('stacks.signIn', 'NONCE FETCH FAILED', errData?.error ? { error: errData.error } : undefined);
       throw new Error(errData.error || 'Failed to fetch nonce');
     }
 
     const { nonce } = await response.json();
-    console.log('--- SIGN_IN: RECEIVED NONCE ---', nonce);
+    logDebug('stacks.signIn', 'RECEIVED NONCE', { nonce: typeof nonce === 'string' ? '***' : nonce });
 
     return new Promise((resolve, reject) => {
-      console.log('--- SIGN_IN: OPENING SIGNATURE REQUEST ---');
+      logDebug('stacks.signIn', 'OPENING SIGNATURE REQUEST');
       openSignatureRequest({
         message: `Sign in to GM DApp\nNonce: ${nonce}`,
         network: APP_CONFIG.network,
         appDetails,
-        onFinish: async (data: any) => {
-          console.log('--- SIGN_IN: SIGNATURE FINISHED ---', data);
+          onFinish: async (data: any) => {
+          logDebug('stacks.signIn', 'SIGNATURE FINISHED');
           try {
             const verifyRes = await fetch('/api/auth/verify', {
               method: 'POST',
@@ -328,27 +330,27 @@ export const signInWithWallet = async (address: string): Promise<{ token: string
             });
 
             if (!verifyRes.ok) {
-              const verifyErr = await verifyRes.json();
-              console.error('--- SIGN_IN: VERIFY FAILED ---', verifyErr);
+              const verifyErr = await verifyRes.json().catch(() => ({}));
+              logErrorLevel('stacks.signIn', 'VERIFY FAILED', verifyErr?.error ? { error: verifyErr.error } : undefined);
               throw new Error(verifyErr.error || 'Verification failed');
             }
 
             const authData = await verifyRes.json();
-            console.log('--- SIGN_IN: VERIFY SUCCESS ---', authData);
+            logInfo('stacks.signIn', 'VERIFY SUCCESS');
             resolve(authData);
           } catch (e: any) {
-            console.error('--- SIGN_IN: VERIFY CRASH ---', e);
+            logErrorLevel('stacks.signIn', 'VERIFY CRASH', undefined, e instanceof Error ? e : undefined);
             reject(e);
           }
         },
         onCancel: () => {
-          console.log('--- SIGNATURE CANCELLED BY USER ---');
+          logInfo('stacks.signIn', 'SIGNATURE CANCELLED BY USER');
           resolve(null);
         },
       });
     });
   } catch (err: any) {
-    console.error('--- SIGN_IN: CORE CRASH ---', err);
+    logErrorLevel('stacks.signIn', 'CORE CRASH', undefined, err instanceof Error ? err : undefined);
     throw err;
   }
 };
