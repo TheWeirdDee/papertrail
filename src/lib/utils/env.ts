@@ -75,6 +75,7 @@ const validateEnvironmentConfig = (config: EnvironmentConfig): void => {
   if (errors.length > 0) {
     const { logErrorLevel } = require('./logger');
     logErrorLevel('env.validateEnvironmentConfig', 'Environment Configuration Errors', { errors });
+    console.error('Environment Configuration Errors:', errors);
     if (config.isProduction) {
       throw new Error(`Critical environment errors: ${errors.join('; ')}`);
     }
@@ -102,6 +103,7 @@ export const getServerEnvironmentConfig = () => {
   if (errors.length > 0) {
     const { logErrorLevel } = require('./logger');
     logErrorLevel('env.getServerEnvironmentConfig', 'Server Environment Errors', { errors });
+    console.error('Server Environment Errors:', errors);
     throw new Error(`Critical server environment errors: ${errors.join('; ')}`);
   }
   

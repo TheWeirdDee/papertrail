@@ -1,4 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { logError, logInfo } from '../utils/logger';
+import { isValidTxId } from '../utils/validation';
 
 export interface Transaction {
   txId: string;
@@ -18,20 +20,44 @@ const initialState: TxState = {
   pendingCount: 0,
 };
 
+const MAX_TRANSACTIONS = 200;
+
 const txSlice = createSlice({
   name: 'tx',
   initialState,
   reducers: {
     addTransaction: (state, action: PayloadAction<Transaction>) => {
-      state.transactions.unshift(action.payload);
-      if (action.payload.status === 'pending') {
+      const tx = action.payload;
+      if (!tx || !tx.txId || !isValidTxId(tx.txId)) {
+        logError('txSlice', 'Attempted to add invalid transaction', { tx });
+        return;
+      }
+
+      // prevent duplicates
+      if (state.transactions.find(t => t.txId === tx.txId)) {
+        logInfo('txSlice', 'Duplicate transaction ignored', { txId: tx.txId });
+        return;
+      }
+
+      state.transactions.unshift(tx);
+      if (tx.status === 'pending') {
         state.pendingCount += 1;
+      }
+
+      // enforce max list size
+      if (state.transactions.length > MAX_TRANSACTIONS) {
+        state.transactions = state.transactions.slice(0, MAX_TRANSACTIONS);
       }
     },
     updateTransactionStatus: (state, action: PayloadAction<{ txId: string; status: 'success' | 'failed' }>) => {
-      const tx = state.transactions.find(t => t.txId === action.payload.txId);
+      const { txId, status } = action.payload;
+      if (!isValidTxId(txId)) {
+        logError('txSlice', 'Invalid txId in updateTransactionStatus', { txId });
+        return;
+      }
+      const tx = state.transactions.find(t => t.txId === txId);
       if (tx && tx.status === 'pending') {
-        tx.status = action.payload.status;
+        tx.status = status;
         state.pendingCount = Math.max(0, state.pendingCount - 1);
       }
     },

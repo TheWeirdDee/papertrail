@@ -168,6 +168,10 @@ export async function post<T = any>(
     ...options,
     method: 'POST',
     body
+  return secureFetch<T>(url, {
+    ...options,
+    method: 'POST',
+    body: JSON.stringify(data)
   });
 }
 
@@ -194,6 +198,10 @@ export async function put<T = any>(
     ...options,
     method: 'PUT',
     body
+  return secureFetch<T>(url, {
+    ...options,
+    method: 'PUT',
+    body: JSON.stringify(data)
   });
 }
 

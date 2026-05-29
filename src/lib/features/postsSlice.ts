@@ -2,6 +2,8 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { Post } from '@/lib/types';
 import { logout } from './userSlice';
 import { supabase, getSupaClient } from '@/lib/supabase';
+import { isValidToken, isValidUrl, sanitizeInput } from '../utils/validation';
+import { logError, logInfo } from '../utils/logger';
 
 interface PostsState {
   feed: Post[];
@@ -25,18 +27,28 @@ export const fetchPostsFromSupabase = createAsyncThunk(
   async (_, { dispatch, rejectWithValue }) => {
     try {
       const token = localStorage.getItem('gm_session_token');
-      if (!token) return { posts: [], nextCursor: null };
+      if (!token || !isValidToken(token)) return { posts: [], nextCursor: null };
 
       const response = await fetch('/api/posts/feed?limit=20', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-      if (!response.ok) throw new Error('Failed to fetch feed');
-      const data = await response.json();
+
+      if (!response.ok) {
+        const text = await response.text().catch(() => '');
+        logError('fetchPostsFromSupabase', 'Feed fetch failed', { status: response.status, body: text });
+        throw new Error('Failed to fetch feed');
+      }
+
+      const data = await response.json().catch((e: any) => {
+        logError('fetchPostsFromSupabase', 'Invalid JSON from feed', e);
+        return { posts: [], nextCursor: null };
+      });
+
       return {
-        posts: data.posts,
-        nextCursor: data.nextCursor
+        posts: Array.isArray(data.posts) ? data.posts : [],
+        nextCursor: data.nextCursor || null
       };
     } catch (err: any) {
       if (err.message.toLowerCase().includes('invalid compact jws')) {
@@ -53,18 +65,28 @@ export const fetchPaginatedPosts = createAsyncThunk(
   async (cursor: string, { dispatch, rejectWithValue }) => {
     try {
       const token = localStorage.getItem('gm_session_token');
-      if (!token) return { posts: [], nextCursor: null };
+      if (!token || !isValidToken(token)) return { posts: [], nextCursor: null };
 
-      const response = await fetch(`/api/posts/feed?limit=20&cursor=${cursor}`, {
+      const response = await fetch(`/api/posts/feed?limit=20&cursor=${encodeURIComponent(cursor)}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-      if (!response.ok) throw new Error('Failed to fetch more posts');
-      const data = await response.json();
+
+      if (!response.ok) {
+        const text = await response.text().catch(() => '');
+        logError('fetchPaginatedPosts', 'Failed to fetch more posts', { status: response.status, body: text });
+        throw new Error('Failed to fetch more posts');
+      }
+
+      const data = await response.json().catch((e: any) => {
+        logError('fetchPaginatedPosts', 'Invalid JSON', e);
+        return { posts: [], nextCursor: null };
+      });
+
       return {
-        posts: data.posts,
-        nextCursor: data.nextCursor
+        posts: Array.isArray(data.posts) ? data.posts : [],
+        nextCursor: data.nextCursor || null
       };
     } catch (err: any) {
       if (err.message.toLowerCase().includes('invalid compact jws')) {
@@ -102,12 +124,25 @@ export const createRealPost = createAsyncThunk(
     };
 
 
+    // sanitize optimistic post content
+    optimisticPost.content = sanitizeInput(optimisticPost.content, 5000);
     dispatch(addOptimisticPost(optimisticPost));
 
     try {
       const token = localStorage.getItem('gm_session_token');
-      if (!token) {
-        throw new Error('No session token found. Please sign in again.');
+      if (!token || !isValidToken(token)) {
+        throw new Error('No valid session token found. Please sign in again.');
+      }
+
+      // validate content length
+      const safeContent = sanitizeInput(postData.content, 5000);
+      if (!safeContent || safeContent.length === 0) {
+        throw new Error('Content is invalid or empty');
+      }
+
+      // validate media URL if provided
+      if (postData.mediaUrl && !isValidUrl(postData.mediaUrl)) {
+        throw new Error('Invalid media URL');
       }
 
       const response = await fetch('/api/posts/create', {
@@ -125,23 +160,27 @@ export const createRealPost = createAsyncThunk(
       });
 
       if (!response.ok) {
-        const errData = await response.json();
-        const errMsg = errData.error || 'Failed to create post';
-        
-        if (
-          errMsg.toLowerCase().includes('exp') || 
-          errMsg.toLowerCase().includes('unauthorized') || 
-          errMsg.toLowerCase().includes('invalid compact jws') ||
-          response.status === 401
-        ) {
+        const body = await response.text().catch(() => '');
+        logError('createRealPost', 'Create post failed', { status: response.status, body });
+
+        if (response.status === 401 || body.toLowerCase().includes('unauthorized') || body.toLowerCase().includes('invalid compact jws')) {
           dispatch(logout());
           throw new Error('Your session has expired. Please sign in again.');
         }
 
+        const parsed = await (async () => {
+          try { return JSON.parse(body); } catch { return null; }
+        })();
+
+        const errMsg = parsed?.error || parsed?.message || 'Failed to create post';
         throw new Error(errMsg);
       }
 
-      const { data } = await response.json();
+      const parsedResp = await response.json().catch((e: any) => {
+        logError('createRealPost', 'Invalid JSON response', e);
+        return null;
+      });
+      const { data } = parsedResp || { data: null };
       
 
       return { tempId, realPost: data };

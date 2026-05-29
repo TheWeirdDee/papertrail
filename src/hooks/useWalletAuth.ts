@@ -5,43 +5,41 @@ import { toast } from 'react-hot-toast';
 import { authenticate, signInWithWallet } from '@/lib/stacks';
 import { setAddress, setSessionToken } from '@/lib/features/userSlice';
 import { useRouter } from 'next/navigation';
+import { logError, getUserFriendlyMessage } from '@/lib/utils/errors';
 
+/**
+ * Custom hook for wallet authentication
+ * Handles login flow with wallet connection and signature verification
+ */
 export const useWalletAuth = () => {
   const dispatch = useDispatch();
   const router = useRouter();
 
   const login = async () => {
     try {
-      console.log('--- UNIFIED LOGIN INITIATED ---');
-      
       const stxAddress = await authenticate();
+      
       if (!stxAddress) {
-        console.warn('--- LOGIN CANCELED: NO ADDRESS RETURNED ---');
         return null;
       }
-      
-      console.log('--- PHASE 1 SUCCESS: ADDRESS ---', stxAddress);
-      
+
       dispatch(setAddress(stxAddress));
-      
-      console.log('--- STARTING PHASE 2: SIGNATURE ---');
-      toast.loading('Phase 2: Verifying identity...', { id: 'auth' });
-      
+
+      toast.loading('Verifying identity...', { id: 'auth' });
+
       try {
         const authData = await signInWithWallet(stxAddress);
-        
+
         if (!authData) {
-          console.warn('--- PHASE 2 ABORTED: NO AUTH DATA ---');
           dispatch(setSessionToken(null));
           toast.dismiss('auth');
           return null;
         }
-        
+
         if (authData.token) {
-          console.log('--- PHASE 2 SUCCESS: JWT RECEIVED ---');
           dispatch(setSessionToken(authData.token));
-          toast.success("Security Verification Successful", { id: 'auth' });
-          
+          toast.success('Authentication successful', { id: 'auth' });
+
           setTimeout(() => {
             if (window.location.pathname === '/') {
               router.push('/dashboard');
@@ -49,21 +47,21 @@ export const useWalletAuth = () => {
               window.location.reload();
             }
           }, 800);
-          
+
           return { address: stxAddress, token: authData.token };
         }
       } catch (signErr: any) {
-        console.error('--- PHASE 2 ERROR ---', signErr);
+        logError('useWalletAuth - signin phase', signErr);
         dispatch(setSessionToken(null));
-        toast.error('Identity verification failed: ' + signErr.message, { id: 'auth' });
+        toast.error(getUserFriendlyMessage(signErr), { id: 'auth' });
         return null;
       }
-      
+
       return null;
     } catch (err: any) {
-      console.error('--- UNIFIED AUTH CRASH ---', err);
+      logError('useWalletAuth - auth phase', err);
       dispatch(setSessionToken(null));
-      toast.error(err.message || 'Login failed', { id: 'auth' });
+      toast.error(err.message || 'Authentication failed', { id: 'auth' });
       return null;
     }
   };

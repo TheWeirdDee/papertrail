@@ -15,6 +15,7 @@ const ADDRESS_KEY = 'gm_user_address';
 export const storeToken = (token: string): void => {
   if (!isValidToken(token)) {
     logWarn('auth.storeToken', 'Invalid token format');
+    console.warn('Invalid token format');
     return;
   }
 
@@ -22,6 +23,8 @@ export const storeToken = (token: string): void => {
     localStorage.setItem(TOKEN_KEY, token);
   } catch (error: any) {
     logErrorLevel('auth.storeToken', 'Failed to store token', undefined, error instanceof Error ? error : undefined);
+  } catch (error) {
+    console.error('Failed to store token:', error);
   }
 };
 
@@ -32,8 +35,11 @@ export const getStoredToken = (): string | null => {
   try {
     const token = localStorage.getItem(TOKEN_KEY);
     return token && isValidToken(token) ? token : null;
+
   } catch (error: any) {
     logErrorLevel('auth.getStoredToken', 'Failed to retrieve token', undefined, error instanceof Error ? error : undefined);
+  } catch (error) {
+    console.error('Failed to retrieve token:', error);
     return null;
   }
 };
@@ -46,6 +52,8 @@ export const clearToken = (): void => {
     localStorage.removeItem(TOKEN_KEY);
   } catch (error: any) {
     logErrorLevel('auth.clearToken', 'Failed to clear token', undefined, error instanceof Error ? error : undefined);
+  } catch (error) {
+    console.error('Failed to clear token:', error);
   }
 };
 
@@ -61,6 +69,8 @@ export const storeAddress = (address: string): void => {
     localStorage.setItem(ADDRESS_KEY, address);
   } catch (error: any) {
     logErrorLevel('auth.storeAddress', 'Failed to store address', undefined, error instanceof Error ? error : undefined);
+  } catch (error) {
+    console.error('Failed to store address:', error);
   }
 };
 
@@ -72,6 +82,8 @@ export const getStoredAddress = (): string | null => {
     return localStorage.getItem(ADDRESS_KEY);
   } catch (error: any) {
     logErrorLevel('auth.getStoredAddress', 'Failed to retrieve address', undefined, error instanceof Error ? error : undefined);
+  } catch (error) {
+    console.error('Failed to retrieve address:', error);
     return null;
   }
 };
@@ -84,6 +96,9 @@ export const clearAddress = (): void => {
     localStorage.removeItem(ADDRESS_KEY);
   } catch (error: any) {
     logErrorLevel('auth.clearAddress', 'Failed to clear address', undefined, error instanceof Error ? error : undefined);
+  } catch (error) {
+    console.error('Failed to clear address:', error);
+
   }
 };
 
@@ -150,6 +165,23 @@ export const decodeToken = (token: string): any | null => {
     return JSON.parse(json);
   } catch (error: any) {
     logErrorLevel('auth.decodeToken', 'Failed to decode token', undefined, error instanceof Error ? error : undefined);
+    if (!isValidToken(token)) {
+      return null;
+    }
+
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      return null;
+    }
+
+    // Decode payload (second part)
+    const decoded = JSON.parse(
+      Buffer.from(parts[1], 'base64').toString('utf-8')
+    );
+
+    return decoded;
+  } catch (error) {
+    console.error('Failed to decode token:', error);
     return null;
   }
 };
