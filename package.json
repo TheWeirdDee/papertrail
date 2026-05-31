@@ -8,15 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test:contracts": "vitest run tests/gm-social.test.ts",
-    "deploy:mainnet": "ts-node-esm scratch/deploy-mainnet.ts",
-    "bot": "ts-node-esm scripts/private/divine.ts",
-    "divine:balance-check": "ts-node-esm scripts/divine-tools/divine-balance-check.ts",
-    "divine:username-sync": "ts-node-esm scripts/divine-tools/divine-username-sync.ts",
-    "divine:state-report": "ts-node-esm scripts/divine-tools/divine-state-report.ts",
-    "divine:reset-state": "ts-node-esm scripts/divine-tools/divine-reset-state.ts",
-    "divine:health-check": "ts-node-esm scripts/divine-tools/divine-health-check.ts",
-    "sync": "ts-node-esm scripts/private/distribution-sync.ts",
-    "distribute": "ts-node-esm scripts/private/package-distribution.ts"
+    "deploy:mainnet": "ts-node-esm scratch/deploy-mainnet.ts"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",
