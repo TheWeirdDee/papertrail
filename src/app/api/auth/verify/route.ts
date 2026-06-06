@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Verify signature
-    const message = `Sign in to GM DApp\nNonce: ${nonceData.nonce}`;
+    const message = `Sign in to PaperTrail\nNonce: ${nonceData.nonce}`;
     let isValid: boolean;
 
     try {
