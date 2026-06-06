@@ -4,7 +4,7 @@
  */
 
 const ALLOWED_ORIGINS = [
-  process.env.NEXT_PUBLIC_APP_URL || 'https://gm-dapp.vercel.app',
+  process.env.NEXT_PUBLIC_APP_URL || 'https://papertrail.vercel.app',
   'http://localhost:3000',
   'http://localhost:3001',
 ];
