@@ -1,23 +1,21 @@
 /**
  * Stacks Blockchain Integration Layer
- * Handles wallet authentication, contract calls, and on-chain data fetching
- * with improved error handling and security validation
+ * Handles wallet authentication, generic contract calls, and network status
  */
 
 import { APP_CONFIG } from './config';
 import { toast } from 'react-hot-toast';
-import { store } from './store';
+// store is lazy-loaded to break circular dependency
+const getStore = () => require('./store').store;
 import { addTransaction, updateTransactionStatus } from './features/txSlice';
-
 import { logDebug, logInfo, logWarn, logErrorLevel, logSecurityEvent } from './utils/logger';
 import { isValidStacksAddress } from './utils/validation';
 import { getEnvironmentConfig } from './utils/env';
 import { logError, getUserFriendlyMessage } from './utils/errors';
 
-
 export const appDetails = {
-  name: 'GM DApp',
-  icon: process.env.NEXT_PUBLIC_APP_URL ? `${process.env.NEXT_PUBLIC_APP_URL}/logo.png` : 'https://gm-dapp.vercel.app/logo.png',
+  name: 'PaperTrail',
+  icon: process.env.NEXT_PUBLIC_APP_URL ? `${process.env.NEXT_PUBLIC_APP_URL}/logo.png` : 'https://papertrail.vercel.app/logo.png',
 };
 
 export const network = APP_CONFIG.network;
@@ -129,107 +127,6 @@ export const getUserData = () => {
 };
 
 /**
- * Fetches GM token balance for user
- * @param userAddress - User's Stacks address
- * @returns Token balance or 0
- */
-export const getGmTokenBalance = async (userAddress: string): Promise<number> => {
-  if (typeof window === 'undefined') return 0;
-
-  if (!isValidStacksAddress(userAddress)) {
-    logError('getGmTokenBalance', new Error('Invalid address'), { userAddress });
-    return 0;
-  }
-
-  try {
-    const { fetchCallReadOnlyFunction, cvToValue, Cl } = getTransactions();
-    const result = await fetchCallReadOnlyFunction({
-      network: APP_CONFIG.network,
-      contractAddress: APP_CONFIG.token.address,
-      contractName: APP_CONFIG.token.name,
-      functionName: 'get-balance',
-      functionArgs: [Cl.principal(userAddress)],
-      senderAddress: userAddress,
-    });
-
-    const val = cvToValue(result);
-    
-    if (val && typeof val === 'object' && (val.type === 20 || val.type === 'response-ok')) {
-      const balance = Number(val.value);
-      return isNaN(balance) ? 0 : Math.max(0, balance);
-    }
-
-    return 0;
-  } catch (error: any) {
-    logError('getGmTokenBalance', error, { userAddress });
-    return 0;
-  }
-};
-
-/**
- * Fetches on-chain user data from social contract
- * @param userAddress - User's Stacks address
- * @returns User on-chain data or null
- */
-export const getUserOnChainData = async (userAddress: string) => {
-  if (typeof window === 'undefined') return null;
-
-  if (!isValidStacksAddress(userAddress)) {
-    logError('getUserOnChainData', new Error('Invalid address'), { userAddress });
-    return null;
-  }
-
-  try {
-    const { fetchCallReadOnlyFunction, cvToValue, Cl } = getTransactions();
-    const result = await fetchCallReadOnlyFunction({
-      network: APP_CONFIG.network,
-      contractAddress: APP_CONFIG.social.address,
-      contractName: APP_CONFIG.social.name,
-      functionName: 'get-user-data',
-      functionArgs: [Cl.principal(userAddress)],
-      senderAddress: userAddress,
-    });
-
-    const val = cvToValue(result);
-    let unwrapped = val;
-    
-    if (val && typeof val === 'object' && (val.type === 20 || val.type === 'response-ok')) {
-      unwrapped = val.value;
-    }
-
-    const getNum = (field: any) => {
-      if (field === undefined || field === null) return 0;
-      if (typeof field === 'object' && 'value' in field) field = field.value;
-      const num = typeof field === 'bigint' ? Number(field) : Number(field);
-      return isNaN(num) ? 0 : num;
-    };
-
-    const extractOptional = (optVal: any): string | null => {
-      if (!optVal || optVal.type === 9) return null;
-      if (optVal.value) return extractOptional(optVal.value);
-      return typeof optVal === 'string' ? optVal : null;
-    };
-
-    return {
-      lastGm: getNum(unwrapped['last-gm'] || unwrapped.lastGm),
-      points: getNum(unwrapped.points),
-      streak: getNum(unwrapped.streak),
-      username: extractOptional(unwrapped.username),
-      isPro: (unwrapped['is-pro'] || unwrapped.isPro) === true,
-      proExpiry: getNum(unwrapped['pro-expiry'] || unwrapped.proExpiry),
-      healCount: getNum(unwrapped['heal-count'] || unwrapped.healCount),
-      totalTipped: getNum(unwrapped['total-tipped'] || unwrapped.totalTipped),
-      totalReceived: getNum(unwrapped['total-received'] || unwrapped.totalReceived),
-      followers: getNum(unwrapped.followers),
-      following: getNum(unwrapped.following),
-    };
-  } catch (error: any) {
-    logError('getUserOnChainData', error, { userAddress });
-    return null;
-  }
-};
-
-/**
  * Fetches current block height from blockchain
  * @returns Current block height or 0
  */
@@ -237,7 +134,6 @@ export const getOnChainBlockHeight = async (): Promise<number> => {
   if (typeof window === 'undefined') return 0;
 
   try {
-    const config = getEnvironmentConfig();
     const apiUrl = APP_CONFIG.isMainnet 
       ? 'https://api.mainnet.hiro.so/extended/v1/block?limit=1'
       : 'https://api.testnet.hiro.so/extended/v1/block?limit=1';
@@ -258,7 +154,6 @@ export const getOnChainBlockHeight = async (): Promise<number> => {
     return 0;
   }
 };
-
 
 /**
  * Calls a smart contract function
@@ -286,8 +181,6 @@ export const callContract = async (options: any) => {
       sessionAddress = userData.profile?.stxAddress?.[APP_CONFIG.isMainnet ? 'mainnet' : 'testnet'];
     } catch (e: any) {
       logWarn('stacks.getUserSession', 'SESSION ERROR', { error: e?.message });
-    } catch (error) {
-      logError('callContract - session load', error);
     }
   }
 
@@ -299,9 +192,6 @@ export const callContract = async (options: any) => {
 
   logInfo('stacks.callContract', `contract call ${options.functionName}`);
 
-    toast.error('Wallet mismatch! Please re-login.');
-    return;
-  }
   try {
     await openContractCall({
       postConditionMode: 0x01,
@@ -316,7 +206,7 @@ export const callContract = async (options: any) => {
           logError('callContract', new Error('No txId returned'));
           return;
         }
-        store.dispatch(addTransaction({
+        getStore().dispatch(addTransaction({
           txId: data.txId,
           status: 'pending',
           type: options.functionName.replace(/-/g, ' ').toUpperCase(),
@@ -335,8 +225,6 @@ export const callContract = async (options: any) => {
     });
   } catch (err: any) {
     logErrorLevel('stacks.callContract', 'CONTRACT CALL ERROR', undefined, err instanceof Error ? err : undefined);
-    toast.error('Failed to open wallet: ' + (err?.message || 'Unknown error'));
-    logError('callContract', err);
     toast.error(getUserFriendlyMessage(err));
   }
 };
@@ -362,7 +250,7 @@ async function pollTransactionStatus(txId: string) {
     attempts++;
     
     if (attempts > maxAttempts) {
-      store.dispatch(updateTransactionStatus({ txId, status: 'pending' }));
+      logWarn('pollTransactionStatus', 'Polling timed out, transaction still pending', { txId });
       return;
     }
 
@@ -381,13 +269,13 @@ async function pollTransactionStatus(txId: string) {
       const data = await response.json();
 
       if (data.tx_status === 'success') {
-        store.dispatch(updateTransactionStatus({ txId, status: 'success' }));
+        getStore().dispatch(updateTransactionStatus({ txId, status: 'success' }));
         toast.success('Transaction confirmed!', { id: txId });
         return;
       }
 
       if (data.tx_status === 'abort_by_response' || data.tx_status === 'abort_by_post_condition') {
-        store.dispatch(updateTransactionStatus({ txId, status: 'failed' }));
+        getStore().dispatch(updateTransactionStatus({ txId, status: 'failed' }));
         toast.error('Transaction failed', { id: txId });
         return;
       }
@@ -403,51 +291,6 @@ async function pollTransactionStatus(txId: string) {
 
   check();
 }
-
-/**
- * Tips an author with STX
- * @param recipient - Recipient address
- * @param amountStx - Amount in STX
- * @param senderAddress - Sender address
- */
-export const tipAuthor = async (
-  recipient: string,
-  amountStx: number,
-  senderAddress: string | null
-) => {
-  if (typeof window === 'undefined') return;
-
-  if (!isValidStacksAddress(recipient)) {
-    throw new Error('Invalid recipient address');
-  }
-
-  if (amountStx <= 0 || amountStx > 1000000) {
-    throw new Error('Invalid amount');
-  }
-
-  const { Cl, Pc } = getTransactions();
-  const amountMicroStx = Math.round(amountStx * 1000000);
-  const finalSender = senderAddress || localStorage.getItem('gm_user_address');
-
-  if (!finalSender || !isValidStacksAddress(finalSender)) {
-    throw new Error('Wallet not connected');
-  }
-
-  const postCondition = Pc.principal(finalSender).willSendLte(amountMicroStx).ustx();
-
-  await callContract({
-    contractAddress: APP_CONFIG.social.address,
-    contractName: APP_CONFIG.social.name,
-    functionName: 'tip-author',
-    functionArgs: [Cl.principal(recipient), Cl.uint(amountMicroStx)],
-    stxAddress: finalSender,
-    postConditionMode: 0x01,
-    postConditions: [postCondition],
-    onFinish: (data: any) => {
-      logInfo('stacks.tipAuthor', 'TIP BROADCASTED', { txId: data.txId });
-    }
-  });
-};
 
 /**
  * Signs in user with wallet signature
@@ -476,8 +319,6 @@ export const signInWithWallet = async (address: string): Promise<{ token: string
     }
 
     logDebug('stacks.signIn', `fetching nonce for ${address}`);
-      throw new Error('Wallet signature not available');
-    }
     const response = await fetch('/api/auth/nonce', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -488,7 +329,6 @@ export const signInWithWallet = async (address: string): Promise<{ token: string
     if (!response.ok) {
       const errData = await response.json().catch(() => ({}));
       logErrorLevel('stacks.signIn', 'NONCE FETCH FAILED', errData?.error ? { error: errData.error } : undefined);
-      const errData = await response.json();
       throw new Error(errData.error || 'Failed to fetch nonce');
     }
 
@@ -498,14 +338,12 @@ export const signInWithWallet = async (address: string): Promise<{ token: string
     return new Promise((resolve, reject) => {
       logDebug('stacks.signIn', 'OPENING SIGNATURE REQUEST');
 
-    return new Promise((resolve, reject) => {
       openSignatureRequest({
-        message: `Sign in to GM DApp\nNonce: ${nonce}`,
+        message: `Sign in to PaperTrail\nNonce: ${nonce}`,
         network: APP_CONFIG.network,
         appDetails,
-          onFinish: async (data: any) => {
-          logDebug('stacks.signIn', 'SIGNATURE FINISHED');
         onFinish: async (data: any) => {
+          logDebug('stacks.signIn', 'SIGNATURE FINISHED');
           try {
             if (!data.signature || !data.publicKey) {
               throw new Error('Invalid signature data');
@@ -526,9 +364,6 @@ export const signInWithWallet = async (address: string): Promise<{ token: string
             if (!verifyRes.ok) {
               const verifyErr = await verifyRes.json().catch(() => ({}));
               logErrorLevel('stacks.signIn', 'VERIFY FAILED', verifyErr?.error ? { error: verifyErr.error } : undefined);
-
-              const verifyErr = await verifyRes.json();
-
               throw new Error(verifyErr.error || 'Verification failed');
             }
 
@@ -542,51 +377,14 @@ export const signInWithWallet = async (address: string): Promise<{ token: string
         },
         onCancel: () => {
           logInfo('stacks.signIn', 'SIGNATURE CANCELLED BY USER');
-            resolve(authData);
-          } catch (error: any) {
-            logError('signInWithWallet - verify', error);
-            reject(error);
-          }
-        },
-        onCancel: () => {
           resolve(null);
         },
       });
     });
   } catch (err: any) {
     logErrorLevel('stacks.signIn', 'CORE CRASH', undefined, err instanceof Error ? err : undefined);
-    logError('signInWithWallet', err, { address });
     throw err;
   }
 };
 
-/**
- * Initializes protocol (sets token governor and links contracts)
- */
-export const initializeProtocol = async () => {
-  const { Cl } = getTransactions();
-
-  toast.loading('Step 1/2: Setting Token Governor...', { id: 'init-protocol' });
-
-  await callContract({
-    contractAddress: APP_CONFIG.token.address,
-    contractName: APP_CONFIG.token.name,
-    functionName: 'set-governor',
-    functionArgs: [Cl.principal(`${APP_CONFIG.social.address}.${APP_CONFIG.social.name}`)],
-    onFinish: () => {
-      toast.loading('Step 2/2: Linking Token to Social Contract...', { id: 'init-protocol' });
-      
-      setTimeout(async () => {
-        await callContract({
-          contractAddress: APP_CONFIG.social.address,
-          contractName: APP_CONFIG.social.name,
-          functionName: 'set-token-contract',
-          functionArgs: [Cl.principal(`${APP_CONFIG.token.address}.${APP_CONFIG.token.name}`)],
-          onFinish: () => {
-            toast.success('Protocol Initialized Successfully!', { id: 'init-protocol' });
-          }
-        });
-      }, 5000);
-    }
-  });
-};
+// PaperTrail contract functions will be added here
