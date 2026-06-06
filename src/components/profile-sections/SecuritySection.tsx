@@ -65,40 +65,7 @@ export default function SecuritySection({ address }: { address: string }) {
         </div>
       </div>
 
-      {/* Protocol Admin (Only visible for deployer) */}
-      {(address === 'SP1MQE0HMB765Z9EVF0CM6SPMMKW4VPDDSRKP54QX' || address === 'ST1MQE0HMB765Z9EVF0CM6SPMMKW4VPDDSRKP54QX') && (
-        <div className="bg-[#0A0A0A] border border-red-500/10 rounded-3xl p-8 shadow-2xl">
-          <div className="flex items-center gap-4 mb-8">
-            <div className="h-10 w-10 rounded-xl bg-red-500/10 flex items-center justify-center text-red-500">
-              <Shield className="h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="text-sm font-black text-white uppercase tracking-[0.2em]">Protocol Admin</h3>
-              <p className="text-xs text-gray-500">Authorized deployer controls</p>
-            </div>
-          </div>
 
-          <div className="p-6 bg-red-500/5 border border-red-500/10 rounded-2xl">
-            <div className="flex items-start justify-between">
-              <div className="max-w-md">
-                <p className="text-sm font-bold text-white mb-2">Initialize Protocol Permissions</p>
-                <p className="text-xs text-gray-500 leading-relaxed mb-6">
-                  Set the token contract governor to the social protocol. This is required for the protocol to mint rewards for tipping and GM streaks.
-                </p>
-                <button 
-                  onClick={async () => {
-                    const { initializeProtocol } = await import('@/lib/stacks');
-                    await initializeProtocol();
-                  }}
-                  className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all active:scale-[0.98]"
-                >
-                  Link Contracts & Set Governor
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
