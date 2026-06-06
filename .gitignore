@@ -56,3 +56,10 @@ distribution.log
 /tmp/
 .env.local.backup
 /scripts/private/
+
+# Ignore all markdown files except README
+**/*.md
+!**/README.md
+!**/readme.md
+!**/README.MD
+!**/README
