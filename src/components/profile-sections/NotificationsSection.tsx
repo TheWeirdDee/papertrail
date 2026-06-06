@@ -25,8 +25,8 @@ export default function NotificationsSection() {
                      <Bell className="h-5 w-5" />
                   </div>
                   <div>
-                     <p className="text-sm font-bold text-white">Daily GM Reminder</p>
-                     <p className="text-xs text-gray-500">Alert me when it's time to maintain my streak</p>
+                     <p className="text-sm font-bold text-white">Daily Digest</p>
+                     <p className="text-xs text-gray-500">Alert me when my daily document verification digest is ready</p>
                   </div>
                </div>
                <button 
@@ -43,8 +43,8 @@ export default function NotificationsSection() {
                      <Smartphone className="h-5 w-5" />
                   </div>
                   <div>
-                     <p className="text-sm font-bold text-white">Social Graph Mentions</p>
-                     <p className="text-xs text-gray-500">Notify me on likes and follows</p>
+                     <p className="text-sm font-bold text-white">Document Verification Alerts</p>
+                     <p className="text-xs text-gray-500">Notify me when someone verifies one of my documents</p>
                   </div>
                </div>
                <button 
@@ -61,8 +61,8 @@ export default function NotificationsSection() {
                      <Zap className="h-5 w-5" />
                   </div>
                   <div>
-                     <p className="text-sm font-bold text-white">Pro Exclusive Alerts</p>
-                     <p className="text-xs text-gray-500">Rewards and drop notifications</p>
+                     <p className="text-sm font-bold text-white">System Alerts</p>
+                     <p className="text-xs text-gray-500">Notify me of contract and protocol status updates</p>
                   </div>
                </div>
                <button 
