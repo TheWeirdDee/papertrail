@@ -10,7 +10,7 @@ import { createErrorResponse, createSuccessResponse, logError } from '@/lib/util
 export async function POST(request: NextRequest) {
   try {
     // Check origin
-    const origin = request.headers.get('origin');
+    const origin = request.headers.get('origin') || undefined;
     if (!isOriginAllowed(origin)) {
       return NextResponse.json(
         createErrorResponse(403, 'Origin not allowed', 'FORBIDDEN_ORIGIN'),
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     
     // Prepare headers (sanitize custom headers)
     const proxyHeaders: Record<string, string> = {
-      'User-Agent': 'GM-DApp/1.0',
+      'User-Agent': 'PaperTrail/1.0',
       'Accept': 'application/json',
     };
     
@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function OPTIONS(request: NextRequest) {
-  const origin = request.headers.get('origin');
+  const origin = request.headers.get('origin') || undefined;
   const isAllowed = isOriginAllowed(origin);
   
   if (!isAllowed) {
