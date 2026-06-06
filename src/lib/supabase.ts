@@ -13,6 +13,7 @@ if (!supabaseUrl || supabaseUrl.includes('placeholder') || !supabaseUrl.startsWi
 
 if (!supabaseAnonKey) {
   logWarn('supabase', 'NEXT_PUBLIC_SUPABASE_ANON_KEY is missing; some features may not work in browser');
+}
 // Validate environment at load time
 if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
   console.error('CRITICAL: NEXT_PUBLIC_SUPABASE_URL is missing or invalid');
