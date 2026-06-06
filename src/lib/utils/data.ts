@@ -3,8 +3,6 @@
  * Safe data transformation, sanitization, and conversion functions
  */
 import { logErrorLevel } from './logger';
-=======
-import { logError } from './logger';
 
 /**
  * Safely parse JSON with error handling
@@ -17,8 +15,6 @@ export function safeJsonParse<T = any>(json: string, fallback: T): T {
     return JSON.parse(json) as T;
   } catch (error: any) {
     logErrorLevel('safeJsonParse', 'Failed to parse JSON', { error: String(error) });
-  } catch (error) {
-    logError('safeJsonParse', 'Failed to parse JSON', { error: String(error) });
     return fallback;
   }
 }
@@ -34,8 +30,6 @@ export function safeJsonStringify(obj: any, fallback = '{}'): string {
     return JSON.stringify(obj);
   } catch (error: any) {
     logErrorLevel('safeJsonStringify', 'Failed to stringify', { error: String(error) });
-  } catch (error) {
-    logError('safeJsonStringify', 'Failed to stringify', { error: String(error) });
     return fallback;
   }
 }
@@ -227,10 +221,6 @@ export function deepClone<T = any>(obj: T): T {
     return JSON.parse(JSON.stringify(obj)) as T;
   } catch (error: any) {
     logErrorLevel('deepClone', 'Failed to clone object', { error: String(error) });
-=======
-  } catch (error) {
-    logError('deepClone', 'Failed to clone object');
-
     return obj;
   }
 }
