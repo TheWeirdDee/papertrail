@@ -1,4 +1,4 @@
--- GM DAPP SUPABASE SETUP SCRIPT
+-- PAPERTRAIL SUPABASE SETUP SCRIPT
 -- Run this in the Supabase SQL Editor (https://supabase.com/dashboard/project/_/sql)
 
 -- 1. Create the posts table (Simplified)
