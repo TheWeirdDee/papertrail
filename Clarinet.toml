@@ -1,18 +1,13 @@
 [project]
-name = "gm-dapp"
+name = "papertrail"
 authors = []
-description = "Social dApp on Stacks"
+description = "Onchain document verification on Stacks"
 telemetry = true
 requirements = []
 epoch = "2.5"
 
-[contracts.gm-social-v14]
-path = "contracts/gm-social.clar"
-clarity_version = 2
-epoch = "2.5"
-
-[contracts.gm-token-v14]
-path = "contracts/gm-token.clar"
+[contracts.papertrail]
+path = "contracts/papertrail.clar"
 clarity_version = 2
 epoch = "2.5"
 
