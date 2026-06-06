@@ -1,5 +1,5 @@
 -- ============================================================
--- GM DAPP — Complete Supabase Schema Migration
+-- PAPERTRAIL — Complete Supabase Schema Migration
 -- Run in: https://supabase.com/dashboard/project/aazwhqzonavoyxbsymgo/sql
 -- ============================================================
 
