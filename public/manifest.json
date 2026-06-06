@@ -1,7 +1,7 @@
 {
-  "name": "GM DApp",
-  "short_name": "GM",
-  "description": "Own Your Social Graph",
+  "name": "PaperTrail",
+  "short_name": "PaperTrail",
+  "description": "Onchain document verification, secured by Bitcoin.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",
