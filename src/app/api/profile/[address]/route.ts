@@ -20,29 +20,12 @@ export async function GET(
 
     if (profileError) throw profileError;
 
-    const [followersCount, followingCount] = await Promise.all([
-      supabase.from('follows').select('*', { count: 'exact', head: true }).eq('following_address', targetAddress).then(res => res.count || 0),
-      supabase.from('follows').select('*', { count: 'exact', head: true }).eq('follower_address', targetAddress).then(res => res.count || 0)
-    ]);
-
-    let isFollowing = false;
-    if (observer && observer !== targetAddress) {
-      const { data: followRecord } = await supabase
-        .from('follows')
-        .select('id')
-        .eq('follower_address', observer)
-        .eq('following_address', targetAddress)
-        .maybeSingle();
-      
-      isFollowing = !!followRecord;
-    }
-
     return NextResponse.json({
       data: {
         ...(profile || { address: targetAddress }),
-        followersCount,
-        followingCount,
-        isFollowing
+        followersCount: 0,
+        followingCount: 0,
+        isFollowing: false
       }
     });
 
