@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
 
     // Authenticate user
     const authHeader = req.headers.get('Authorization');
-    const token = extractBearerToken(authHeader);
+    const token = extractBearerToken(authHeader || undefined);
 
     if (!token) {
       return NextResponse.json(
