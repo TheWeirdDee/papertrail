@@ -22,7 +22,7 @@ export const isValidStacksAddress = (address: string): boolean => {
  * @returns True if contract name is valid
  */
 export const isValidContractName = (name: string): boolean => {
-  if (!typeof name === 'string' || name.length === 0) return false;
+  if (typeof name !== 'string' || name.length === 0) return false;
   if (name.length > 128) return false;
   
   // Contract names can contain lowercase letters, numbers, and hyphens
