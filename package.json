@@ -1,5 +1,6 @@
 {
-  "name": "@divinedilibe/gm-dapp",
+  "name": "papertrail",
+  "description": "Onchain document verification on Stacks",
   "version": "0.1.1",
   "type": "module",
   "scripts": {
