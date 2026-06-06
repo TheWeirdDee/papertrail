@@ -5,10 +5,7 @@ import {
   MapPin, 
   Edit2, 
   Shield, 
-  Globe, 
-  Users, 
-  Calendar, 
-  Award 
+  Calendar 
 } from 'lucide-react';
 import IdentityAvatar from './IdentityAvatar';
 import EditProfileModal from './EditProfileModal';
@@ -26,10 +23,6 @@ export default function ProfileSettingsCards({ targetAddress }: ProfileSettingsC
   const user = isSelf ? {
     username: currentUserData.username,
     bio: currentUserData.bio,
-    streak: currentUserData.streak || 0,
-    points: currentUserData.points || 0,
-    followers: currentUserData.followers || 0,
-    following: currentUserData.following || 0,
     avatar: currentUserData.avatar
   } : null;
 
@@ -44,10 +37,6 @@ export default function ProfileSettingsCards({ targetAddress }: ProfileSettingsC
   const finalUser = user || {
     username: targetAddress.substring(0, 10),
     bio: null,
-    streak: 0,
-    points: 0,
-    followers: 0,
-    following: 0,
     avatar: undefined
   };
 
@@ -62,7 +51,7 @@ export default function ProfileSettingsCards({ targetAddress }: ProfileSettingsC
               <h2 className="text-2xl font-black text-white tracking-widest uppercase mb-1">
                 {finalUser.username || (targetAddress.substring(0, 6) + '...' + targetAddress.substring(targetAddress.length - 4))}
               </h2>
-              <p className="text-sm font-medium text-gray-500 mb-2">Protocol Participant</p>
+              <p className="text-sm font-medium text-gray-500 mb-2">PaperTrail Participant</p>
               <div className="flex items-center gap-2 text-[10px] text-gray-600 font-mono tracking-tighter">
                  <MapPin className="h-3 w-3" />
                  Stacks Network, {targetAddress.substring(0, 8)}...
@@ -80,24 +69,19 @@ export default function ProfileSettingsCards({ targetAddress }: ProfileSettingsC
         </div>
       </div>
 
-      {/* SECTION 2: PROTOCOL INFORMATION */}
+      {/* SECTION 2: PLATFORM PROFILE */}
       <div className="bg-[#0A0A0A] border border-white/5 rounded-3xl p-8 relative group hover:border-white/10 transition-all shadow-2xl">
          <div className="flex items-center justify-between mb-8">
-            <h3 className="text-sm font-black text-white uppercase tracking-[0.2em]">Protocol Metrics</h3>
+            <h3 className="text-sm font-black text-white uppercase tracking-[0.2em]">Profile Details</h3>
          </div>
 
          <div className="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-12">
             <div>
-               <p className="text-[10px] font-black uppercase tracking-widest text-gray-700 mb-2">Current Streak</p>
-               <p className="text-lg font-bold text-white">{finalUser.streak} <span className="text-xs text-gray-600">Active Days</span></p>
-            </div>
-            <div>
-               <p className="text-[10px] font-black uppercase tracking-widest text-gray-700 mb-2">Social Reputation</p>
-               <p className="text-lg font-bold text-white">{(finalUser.points / 10).toFixed(1)} <span className="text-xs text-gray-600">RP</span></p>
-            </div>
-            <div>
-               <p className="text-[10px] font-black uppercase tracking-widest text-gray-700 mb-2">Network Level</p>
-               <p className="text-lg font-bold text-white">Participant <span className="text-xs text-gray-600">Synced</span></p>
+               <p className="text-[10px] font-black uppercase tracking-widest text-gray-700 mb-2">Joined PaperTrail</p>
+               <div className="flex items-center gap-2 text-sm font-bold text-gray-400">
+                  <Calendar className="h-4 w-4 opacity-30" />
+                  {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+               </div>
             </div>
             <div>
                <p className="text-[10px] font-black uppercase tracking-widest text-gray-700 mb-2">Verification Status</p>
@@ -111,46 +95,8 @@ export default function ProfileSettingsCards({ targetAddress }: ProfileSettingsC
          <div className="mt-8 pt-6 border-t border-white/[0.03]">
             <p className="text-[10px] font-black uppercase tracking-widest text-gray-700 mb-3">Biography</p>
             <p className="text-sm font-medium text-gray-500 leading-relaxed">
-              {finalUser.bio || "No on-chain biography detected for this principal."}
+              {finalUser.bio || "No biography details added for this profile."}
             </p>
-         </div>
-      </div>
-
-      {/* SECTION 3: SOCIAL GRAPH */}
-      <div className="bg-[#0A0A0A] border border-white/5 rounded-3xl p-8 relative group hover:border-white/10 transition-all shadow-2xl">
-         <div className="flex items-center justify-between mb-8">
-            <h3 className="text-sm font-black text-white uppercase tracking-[0.2em]">Social Graph</h3>
-         </div>
-
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-12">
-            <div>
-               <p className="text-[10px] font-black uppercase tracking-widest text-gray-700 mb-2">Connections (Following)</p>
-               <div className="flex items-center gap-2 text-lg font-bold text-white">
-                  <Globe className="h-4 w-4 text-blue-500/40" />
-                  {finalUser.following} <span className="text-xs text-gray-600 font-medium">Nodes</span>
-               </div>
-            </div>
-            <div>
-               <p className="text-[10px] font-black uppercase tracking-widest text-gray-700 mb-2">Connectors (Followers)</p>
-               <div className="flex items-center gap-2 text-lg font-bold text-white">
-                  <Users className={`h-4 w-4 ${finalUser.followers > 10 ? 'text-green-500/40' : 'text-gray-700'}`} />
-                  {finalUser.followers} <span className="text-xs text-gray-600 font-medium">Nodes</span>
-               </div>
-            </div>
-            <div>
-               <p className="text-[10px] font-black uppercase tracking-widest text-gray-700 mb-2">Joined Network</p>
-               <div className="flex items-center gap-2 text-sm font-bold text-gray-400">
-                  <Calendar className="h-4 w-4 opacity-30" />
-                  {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-               </div>
-            </div>
-            <div>
-               <p className="text-[10px] font-black uppercase tracking-widest text-gray-700 mb-2">Protocol Status</p>
-               <div className="flex items-center gap-2 text-sm font-bold text-amber-500/60">
-                  <Award className="h-4 w-4" />
-                  Active Node
-               </div>
-            </div>
          </div>
       </div>
 
