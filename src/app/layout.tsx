@@ -25,8 +25,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Gm | Own Your Social Graph",
-  description: "Say GM. Build streaks. Earn reputation. Own your social graph.",
+  title: "PaperTrail",
+  description: "Onchain document verification on Stacks. Register any document permanently. Verify instantly.",
   icons: {
     icon: [{ url: '/app-icon-square.svg', type: 'image/svg+xml' }],
     shortcut: '/app-icon-square.svg',
