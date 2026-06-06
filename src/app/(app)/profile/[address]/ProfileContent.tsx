@@ -4,17 +4,12 @@ import { use, useState } from 'react';
 import ProfileSidebar from '@/components/ProfileSidebar';
 import ProfileSettingsCards from '@/components/ProfileSettingsCards';
 import SecuritySection from '@/components/profile-sections/SecuritySection';
-import SocialGraphSection from '@/components/profile-sections/SocialGraphSection';
 import NotificationsSection from '@/components/profile-sections/NotificationsSection';
-import ProPlanSection from '@/components/profile-sections/ProPlanSection';
 import DataExportSection from '@/components/profile-sections/DataExportSection';
-import PostCard from '@/components/PostCard';
-import dynamic from 'next/dynamic';
-const FollowersContent = dynamic(() => import('@/app/(app)/followers/FollowersContent'), { ssr: false });
 import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/store';
 import Link from 'next/link';
-import { ArrowLeft, Clock, Zap, X } from 'lucide-react';
+import { ArrowLeft, Zap, X } from 'lucide-react';
 
 export default function ProfileContent({ params }: { params: Promise<{ address: string }> }) {
   const unwrappedParams = use(params);
@@ -22,19 +17,14 @@ export default function ProfileContent({ params }: { params: Promise<{ address: 
   
   const [activeTab, setActiveTab] = useState('profile');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const feed = useSelector((state: RootState) => state.posts.feed);
   const { address: currentAddress, isConnected } = useSelector((state: RootState) => state.user);
-  
-  const userPosts = feed.filter(post => post.authorAddress === targetAddress);
-  
-  const exists = true; 
 
   if (!isConnected) {
     return (
       <div className="min-h-[80vh] flex items-center justify-center p-6 text-center">
         <div className="card p-12 bg-[#0A0A0A] border border-white/5 max-w-2xl rounded-[3rem]">
           <h1 className="text-3xl font-black text-white mb-4 tracking-tighter">Connection Required</h1>
-          <p className="text-gray-500 mb-8 font-medium">Please connect your Stacks wallet to view on-chain social profiles and interactions.</p>
+          <p className="text-gray-500 mb-8 font-medium">Please connect your Stacks wallet to view profile parameters.</p>
           <Link href="/" className="inline-block bg-[var(--color-accent)] text-black font-black py-4 px-10 rounded-2xl hover:bg-opacity-90 transition-all shadow-xl">
             Return Home
           </Link>
@@ -43,21 +33,14 @@ export default function ProfileContent({ params }: { params: Promise<{ address: 
     );
   }
 
-
   const renderSection = () => {
     switch (activeTab) {
       case 'profile':
         return <ProfileSettingsCards targetAddress={targetAddress} />;
-      case 'followers':
-        return <FollowersContent />;
       case 'security':
         return <SecuritySection address={targetAddress} />;
-      case 'social-graph':
-        return <SocialGraphSection />;
       case 'notifications':
         return <NotificationsSection />;
-      case 'pro-plan':
-        return <ProPlanSection />;
       case 'data':
         return <DataExportSection />;
       default:
@@ -100,35 +83,7 @@ export default function ProfileContent({ params }: { params: Promise<{ address: 
 
         {/* Main Content Area (Cols 4-12) */}
         <div className="lg:col-span-9 space-y-12">
-          
           {renderSection()}
-
-          {/* User Posts / On-Chain Activity - Only show on main profile tab */}
-          {activeTab === 'profile' && (
-            <div className="space-y-8 mt-16 pt-16 border-t border-white/[0.03]">
-              <div className="flex items-center justify-between px-2">
-                 <h2 className="text-sm font-black text-gray-400 uppercase tracking-[0.2em]">On-Chain Activity</h2>
-                 <div className="flex items-center gap-2 text-gray-700">
-                    <Clock className="h-3.5 w-3.5" />
-                    <span className="text-[9px] font-black uppercase tracking-widest italic">Syncing Live</span>
-                 </div>
-              </div>
-
-              <div className="flex flex-col gap-8">
-                {userPosts.length > 0 ? (
-                  userPosts.map(post => (
-                    <div key={post.id} className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                       <PostCard post={post} />
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-24 bg-[#0A0A0A] border border-dashed border-white/5 rounded-[2.5rem]">
-                    <p className="text-gray-700 font-bold uppercase tracking-widest text-[10px]">No historical transactions detected</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>
