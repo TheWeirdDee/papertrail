@@ -34,7 +34,7 @@ export const metadata: Metadata = {
   },
   manifest: '/manifest.json',
   other: {
-    "talentapp:project_verification": "5fe4a4a6b2e2883341806ae777a787c8b6ba28c5bb5ce5dca7df48a40a6ec9fcbcfcb7976960fef765b210965dfa0c98bf527a2cb453bc6f2abe28632aaaca3a",
+    "talentapp:project_verification": "588801d986ec0455f419286ac148ac6c51c0c2d1b1a19ca1116272e523e2782aee63b422faa43cab7d79b309842787b964256e5a679e3e9aa23ac5dd6e8fbac7",
   },
 };
 
