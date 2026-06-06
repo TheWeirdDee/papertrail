@@ -33,7 +33,7 @@ export default function Footer() {
           {/* Brand Description Column - Spans All on Mobile, 2 on Desktop */}
           <div className="col-span-3 lg:col-span-2 space-y-6">
             <p className="text-gray-500 max-w-xs text-sm leading-relaxed">
-              The decentralized social engagement protocol on Stacks. Say GM, maintain streaks, and own your social capital.
+              Onchain document verification on Stacks. Register any document permanently. Verify instantly.
             </p>
           </div>
 
@@ -43,7 +43,7 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               <li><Link href="/#features" className="text-gray-500 hover:text-[var(--color-accent)] transition-colors">Features</Link></li>
               <li><Link href="/#how-it-works" className="text-gray-500 hover:text-[var(--color-accent)] transition-colors">How It Works</Link></li>
-              <li><Link href="/feed" className="text-gray-500 hover:text-[var(--color-accent)] transition-colors">Feed</Link></li>
+              <li><Link href="#" className="text-gray-500 hover:text-[var(--color-accent)] transition-colors">Verify</Link></li>
               <li><Link href="/leaderboard" className="text-gray-500 hover:text-[var(--color-accent)] transition-colors">Leaderboard</Link></li>
             </ul>
           </div>
@@ -52,7 +52,7 @@ export default function Footer() {
           <div className="col-span-1 space-y-4">
             <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Developers</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link href="https://github.com/TheWeirdDee/gm-dapp" target="_blank" className="text-gray-500 hover:text-[var(--color-accent)] transition-colors">GitHub</Link></li>
+              <li><Link href="https://github.com/TheWeirdDee/papertrail" target="_blank" className="text-gray-500 hover:text-[var(--color-accent)] transition-colors">GitHub</Link></li>
               <li><Link href="#" className="text-gray-500 hover:text-[var(--color-accent)] transition-colors">Contract</Link></li>
               <li><Link href="#" className="text-gray-500 hover:text-[var(--color-accent)] transition-colors">Documentation</Link></li>
               <li><Link href="#" className="text-gray-500 hover:text-[var(--color-accent)] transition-colors">API Reference</Link></li>
@@ -74,7 +74,7 @@ export default function Footer() {
         <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="flex flex-col md:flex-row items-center gap-6">
             <p className="text-xs text-gray-600 font-medium tracking-tight">
-              © {new Date().getFullYear()} Gm, Inc. All rights reserved.
+              © {new Date().getFullYear()} PaperTrail. All rights reserved.
             </p>
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.03] border border-white/5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
@@ -92,7 +92,7 @@ export default function Footer() {
             <Link href="#" className="text-gray-600 hover:text-white transition-colors">
               <Globe className="h-5 w-5" />
             </Link>
-            <Link href="https://github.com/TheWeirdDee/gm-dapp" target="_blank" className="text-gray-600 hover:text-white transition-colors">
+            <Link href="https://github.com/TheWeirdDee/papertrail" target="_blank" className="text-gray-600 hover:text-white transition-colors">
               <Code className="h-5 w-5" />
             </Link>
           </div>
