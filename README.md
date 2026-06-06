@@ -1,98 +1,57 @@
-# Gm Social Protocol
+# PaperTrail
 
-[![Build Status](https://img.shields.io/badge/Clarinet-verified-brightgreen.svg)](https://hiro.so/clarinet)
 [![Network](https://img.shields.io/badge/Network-Stacks-blue.svg)](https://stacks.co)
-[![License](https://img.shields.io/badge/License-MIT-orange.svg)](LICENSE)
-[![Governance](https://img.shields.io/badge/Governance-V2--Hardened-purple.svg)](#security-features)
+[![Secured By](https://img.shields.io/badge/Secured%20By-Bitcoin-orange.svg)](https://bitcoin.org)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-**Gm Social Protocol** is an on-chain social reputation and engagement system built on the Stacks blockchain. It combines social interaction, token incentives, and DAO governance into a unified protocol where user activity is permanently recorded and rewarded. Built on Bitcoin's security, Gm enables a reputation-based social ecosystem where "GMing" is a core economic action.
+**PaperTrail** is an onchain document verification platform built on the Stacks blockchain. Register any document permanently. Share a verification link. Anyone can confirm it's genuine — instantly, permanently, for free.
 
 ---
 
 ## Overview
 
-Gm Social Protocol enables users to:
+PaperTrail enables users to:
 
-- **Build reputation** through daily engagement (“say-gm”).
-- **Earn token rewards** for activity and consistency.
-- **Follow other users** and grow social graphs on-chain.
-- **Tip creators** using STX directly.
-- **Boost content visibility** through token burning.
-- **Participate in DAO governance** using token-weighted voting.
-- **Access premium features** through a Pro subscription model.
+- **Register documents** — hash any file and anchor its fingerprint to the Bitcoin blockchain via Stacks.
+- **Verify instantly** — anyone with the verification link can confirm a document's authenticity without a wallet.
+- **Share proof** — generate a shareable verification URL for contracts, certificates, agreements, and more.
+- **Own your records** — all document proofs are tied to your Stacks wallet address, fully self-sovereign.
 
 ---
 
-## Protocol Architecture
+## How It Works
 
 ```mermaid
 graph TD
-    User((User Wallet)) -->|say-gm| Social[gm-social.clar]
-    User -->|tip-author| Social
-    User -->|boost-post| Social
-
-    Social -->|Check Emission| Cap{Daily Cap Helper}
-    Cap -->|Within Limit| Social
-
-    Social -->|as-contract mint/burn| Token[gm-token-v2.clar]
-    Token -->|SIP-010 Transfer| Recipient((Recipient Wallet))
-
-    Gov[Protocol Governor] -->|set-governor| Token
-    Gov -->|set-social-governor| Social
+    User((User Wallet)) -->|register-document| Contract[papertrail.clar]
+    Contract -->|stores hash + timestamp| Chain[(Stacks / Bitcoin)]
+    Verifier((Anyone)) -->|verify-document| Contract
+    Contract -->|returns proof| Verifier
 ```
 
 ---
 
-## Security Features (V2 Hardened)
+## Smart Contract
 
-The protocol includes multiple safeguards to ensure long-term stability:
+### [papertrail.clar](./contracts/papertrail.clar)
 
-- **Macro-Economic Emission Cap**: Global daily limit of 50M micro-GM to prevent uncontrolled token inflation.
-- **Anti-Spam Cooldowns**: Enforced block-based limits for key actions:
-  - **Follow Cooldown**: ~8.3 hours (50 blocks).
-  - **Boost Cooldown**: ~48 hours (288 blocks).
-  - **GM Cooldown**: 24 hours (144 blocks).
-- **Social Governance**: Dedicated protocol governor for future DAO/Multi-sig evolution.
-- **DAO Integrity**: Double-vote prevention included in the proposal system.
+Core protocol responsible for:
 
----
-
-## Tokenomics & Emission Model
-
-The **$GM Token** is a SIP-010 compliant fungible token regulated through:
-
-- **Daily Mint Cap**: Enforced at the contract level for all rewards.
-- **Activity Incentives**: Rewards minted for daily engagement and "Gratitude" tipping.
-- **Velocity Control**: Token burns are used to weight content visibility (Boosting).
-- **Authorization**: Controlled minting via the authorized Social Protocol governor only.
+- Anchoring SHA-256 document hashes to the Stacks blockchain.
+- Storing registration timestamp and registrant address.
+- Providing a public `verify-document` read function — no wallet required.
+- Emitting registration events for indexer consumption.
 
 ---
 
-## Smart Contracts
+## Tech Stack
 
-### 1. [gm-social.clar](file:///c:/Users/DELL/Desktop/gm-dapp/contracts/gm-social.clar)
-
-Main protocol logic responsible for:
-
-- User reputation and streak tracking.
-- Social graph management and follower counts.
-- Boosting, Tipping, and Pro subscription handling.
-- DAO proposal and voting aggregation.
-
-### 2. [gm-token.clar](file:///c:/Users/DELL/Desktop/gm-dapp/contracts/gm-token.clar)
-
-SIP-010 compliant governance asset:
-
-- Minting strictly controlled by the Protocol Governor.
-- Native support for supply tracking and standard SIP-010 interactions.
-
----
-
-## Data Structures
-
-- **Users Map**: Stores profile metadata, streaks, reputation points, and Pro subscription status.
-- **Social Graph**: On-chain mapping of followers and following counts.
-- **Governance Proposals**: Tracks titles, expiration blocks, and weighted voting results.
+- **Framework**: Next.js (App Router)
+- **Blockchain**: Stacks (Clarity smart contracts)
+- **Wallet**: `@stacks/connect`
+- **Database**: Supabase (off-chain metadata cache)
+- **Styling**: Tailwind CSS + custom CSS variables
+- **3D Background**: Three.js via `@react-three/fiber`
 
 ---
 
@@ -100,8 +59,9 @@ SIP-010 compliant governance asset:
 
 ### Prerequisites
 
+- [Node.js 18+](https://nodejs.org)
 - [Clarinet](https://github.com/hirosystems/clarinet)
-- [Stacks Wallet](https://www.hiro.so/wallet)
+- [Hiro Wallet](https://www.hiro.so/wallet) (for local testing)
 
 ### Installation
 
@@ -109,43 +69,42 @@ SIP-010 compliant governance asset:
 # Install dependencies
 npm install
 
+# Run the dev server
+npm run dev
+
 # Run contract checks
 clarinet check
-
-# Run tests
-npm test
 ```
 
-### Divine Bot Helpers
+### Environment Variables
 
-The repository includes helper scripts for the `divine.ts` friend-farmer bot.
+Copy `.env.example` to `.env.local` and fill in:
 
-```bash
-npm run bot
-npm run divine:balance-check
-npm run divine:username-sync
-npm run divine:state-report
-npm run divine:reset-state
-npm run divine:health-check
+```env
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_STACKS_NETWORK=testnet
+NEXT_PUBLIC_CONTRACT_ADDRESS=<your-testnet-address>
+NEXT_PUBLIC_CONTRACT_NAME=papertrail
+NEXT_PUBLIC_SUPABASE_URL=<your-supabase-url>
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-supabase-anon-key>
 ```
-
-Use `.env` or `.env.example` to configure the bot flags.
 
 ---
 
 ## Roadmap
 
-- [ ] Snapshot-based voting system upgrade
-- [ ] Multisig governor implementation (DAO transition)
-- [ ] Reputation decay mechanism
-- [ ] Advanced anti-sybil protections
-- [ ] Indexer integration for real-time analytics
+- [ ] Document registration (Day 5–6)
+- [ ] Public verification page (Day 7–8)
+- [ ] Dashboard — my documents (Day 9–10)
+- [ ] Shareable verification links (Day 11)
+- [ ] Leaderboard — top registrants (Day 12–13)
+- [ ] Mainnet deployment (Day 14–15)
 
 ---
 
 ## Contributing
 
-We welcome contributions from the **Stacks** and **Talent Protocol** communities!
+Contributions welcome from the Stacks community!
 
 1. Fork the Project
 2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
@@ -155,4 +114,4 @@ We welcome contributions from the **Stacks** and **Talent Protocol** communities
 
 ---
 
-**Gm.**
+**Your documents. Verified by Bitcoin.**
