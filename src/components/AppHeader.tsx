@@ -5,10 +5,9 @@ import { useRouter } from 'next/navigation';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/lib/store';
 import BrandLogo from './BrandLogo';
-import { Bell, Settings, LogOut, User, Menu, Search, ChevronDown, Home, Wallet, Send, Activity, Zap, Flame } from 'lucide-react';
+import { Bell, Settings, LogOut, User, Menu, Search, ChevronDown, Home, Wallet, Send } from 'lucide-react';
 import Link from 'next/link';
 import IdentityAvatar from './IdentityAvatar';
-import SendSTXModal from './SendSTXModal';
 import NotificationBell from './NotificationBell';
 import TransactionTracker from './TransactionTracker';
 import { logout } from '@/lib/features/userSlice';
@@ -22,10 +21,9 @@ interface AppHeaderProps {
 export default function AppHeader({ onMenuClick }: AppHeaderProps) {
   const dispatch = useDispatch();
   const router = useRouter();
-  const { address, isConnected, username, avatar, gmBalance, streak, points } = useSelector((state: RootState) => state.user);
+  const { address, isConnected, username, avatar } = useSelector((state: RootState) => state.user);
   const { login } = useWalletAuth();
   const [showUserDropdown, setShowUserDropdown] = useState(false);
-  const [showSendModal, setShowSendModal] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
@@ -79,46 +77,7 @@ export default function AppHeader({ onMenuClick }: AppHeaderProps) {
         {/* Right: Actions & Profile HUD */}
         <div className="flex items-center gap-4">
           
-          {hasMounted && isConnected && (
-            <div className="hidden xl:flex items-center gap-4 px-2 py-1.5 bg-white/[0.02] border border-white/5 rounded-[2rem] mr-2">
-              {/* $GM HUD */}
-              <div className="flex items-center gap-2.5 px-4 py-2 hover:bg-white/5 rounded-2xl transition-all cursor-pointer group">
-                <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-yellow-500/10 text-yellow-500 text-[10px] font-black italic border border-yellow-500/20 group-hover:scale-110 transition-transform">
-                  $
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[9px] font-black text-gray-600 leading-none uppercase tracking-widest">Balance</span>
-                  <span className="text-[13px] font-black text-white tracking-tight">{(gmBalance / 1000000).toLocaleString()}</span>
-                </div>
-              </div>
 
-              <div className="w-px h-6 bg-white/5"></div>
-
-              {/* Streak HUD */}
-              <div className="flex items-center gap-2.5 px-4 py-2 hover:bg-white/5 rounded-2xl transition-all cursor-pointer group">
-                <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-orange-500/10 text-orange-500 border border-orange-500/20 group-hover:scale-110 transition-transform">
-                  <Flame className="w-3.5 h-3.5 fill-orange-500/20" />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[9px] font-black text-gray-600 leading-none uppercase tracking-widest">Streak</span>
-                  <span className="text-[13px] font-black text-white tracking-tight">{streak}d</span>
-                </div>
-              </div>
-
-              <div className="w-px h-6 bg-white/5"></div>
-
-              {/* Rep HUD */}
-              <div className="flex items-center gap-2.5 px-4 py-2 hover:bg-white/5 rounded-2xl transition-all cursor-pointer group">
-                <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-blue-500/10 text-blue-500 border border-blue-500/20 group-hover:scale-110 transition-transform">
-                   <Activity className="w-3.5 h-3.5" />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[9px] font-black text-gray-600 leading-none uppercase tracking-widest">Rep</span>
-                  <span className="text-[13px] font-black text-white tracking-tight">{(points / 10).toLocaleString()}</span>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Global Functional Elements */}
           {hasMounted && isConnected && (
@@ -162,18 +121,7 @@ export default function AppHeader({ onMenuClick }: AppHeaderProps) {
                         <span className="font-black text-xs uppercase tracking-widest">Public Identity</span>
                       </Link>
 
-                      <button 
-                        onClick={() => {
-                          setShowSendModal(true);
-                          setShowUserDropdown(false);
-                        }}
-                        className="mx-3 w-[calc(100%-1.5rem)] flex items-center gap-4 px-4 py-3 text-sm text-indigo-400 hover:bg-indigo-500/5 rounded-2xl transition-all group"
-                      >
-                        <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center group-hover:bg-indigo-500/20 transition-colors border border-indigo-500/10">
-                          <Send className="h-4 w-4" />
-                        </div>
-                        <span className="font-black text-xs uppercase tracking-widest">Transfer Assets</span>
-                      </button>
+
 
                       <Link href="/settings" onClick={() => setShowUserDropdown(false)} className="mx-3 flex items-center gap-4 px-4 py-3 text-sm text-gray-400 hover:bg-white/[0.03] hover:text-white rounded-2xl transition-all group">
                         <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/5">
@@ -214,10 +162,7 @@ export default function AppHeader({ onMenuClick }: AppHeaderProps) {
       </div>
     </header>
     
-    <SendSTXModal 
-      isOpen={showSendModal} 
-      onClose={() => setShowSendModal(false)} 
-    />
+
     </>
   );
 }
