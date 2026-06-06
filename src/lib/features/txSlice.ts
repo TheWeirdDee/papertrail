@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { logError, logInfo } from '../utils/logger';
-import { isValidTxId } from '../utils/validation';
+import { logErrorLevel as logError, logInfo } from '../utils/logger';
+import { isValidTransactionId as isValidTxId } from '../utils/validation';
 
 export interface Transaction {
   txId: string;
