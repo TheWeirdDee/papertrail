@@ -2,7 +2,6 @@
 
 import Sidebar from "@/components/Sidebar";
 import AppHeader from "@/components/AppHeader";
-import OnboardingModal from "@/components/OnboardingModal";
 import { useState, useEffect } from "react";
 
 export default function AppLayout({
@@ -28,9 +27,6 @@ export default function AppLayout({
             {children}
           </main>
         </div>
-
-        {/* Global Modal Overlay Layer */}
-        {hasMounted && <OnboardingModal />}
       </div>
   );
 }
