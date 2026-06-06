@@ -7,9 +7,7 @@ import { RootState, AppDispatch } from '@/lib/store';
 import { uploadFile, getSupaClient } from '@/lib/supabase';
 import { updateStats, fetchOnChainStats } from '@/lib/features/userSlice';
 import IdentityAvatar from './IdentityAvatar';
-import { callContract } from '@/lib/stacks';
-import { APP_CONFIG } from '@/lib/config';
-import { AnchorMode, PostConditionMode, stringUtf8CV } from '@stacks/transactions';
+
 
 interface EditProfileModalProps {
   isOpen: boolean;
@@ -49,24 +47,7 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
 
     setIsSaving(true);
     try {
-      if (newUsername && newUsername !== initialUsername && newUsername.length >= 3) {
-        try {
-          await callContract({
-            anchorMode: AnchorMode.Any,
-            contractAddress: APP_CONFIG.social.address,
-            contractName: APP_CONFIG.social.name,
-            functionName: 'set-username',
-            functionArgs: [stringUtf8CV(newUsername.trim())],
-            postConditionMode: PostConditionMode.Deny,
-            postConditions: [],
-            onFinish: (data: any) => {
-              console.log('Username changed:', data.txId);
-            }
-          });
-        } catch (stacksErr) {
-          console.error('Stacks error:', stacksErr);
-        }
-      }
+      // Profile details are updated directly in Supabase for PaperTrail identity metadata
 
       const token = localStorage.getItem('gm_session_token');
       const response = await fetch('/api/profile/update', {
