@@ -1,7 +1,7 @@
 /**
- * GM DAPP — Mainnet Deployment Script
+ * PaperTrail — Mainnet Deployment Script
  *
- * Run from the gm-dapp directory in Git Bash:
+ * Run from the project directory in Git Bash:
  *   DEPLOYER_PRIVATE_KEY="your-64-char-hex-key" npm run deploy:mainnet
  *
  * Run in PowerShell:
@@ -124,7 +124,7 @@ async function main(): Promise<void> {
   }
 
   console.log('═══════════════════════════════════════════════════');
-  console.log('  GM DAPP — Mainnet Deployment');
+  console.log('  PaperTrail — Mainnet Deployment');
   console.log(`  Deployer: ${DEPLOYER_ADDRESS}`);
   console.log('═══════════════════════════════════════════════════\n');
 
