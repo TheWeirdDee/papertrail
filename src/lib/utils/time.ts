@@ -3,8 +3,6 @@
  * Safe date operations, formatting, and calculations
  */
 import { logErrorLevel } from './logger';
-=======
-import { logError } from './logger';
 
 /**
  * Parse date safely
@@ -25,8 +23,6 @@ export function parseDate(value: any): Date | null {
     return null;
   } catch (error: any) {
     logErrorLevel('time.parseDate', 'Failed to parse date', { value: String(value), error: String(error) });
-  } catch (error) {
-    logError('parseDate', 'Failed to parse date');
     return null;
   }
 }
