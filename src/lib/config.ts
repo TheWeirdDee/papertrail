@@ -5,7 +5,7 @@ const networkType = process.env.NEXT_PUBLIC_STACKS_NETWORK || 'testnet';
 const IS_MAINNET = networkType === 'mainnet';
 
 export const PAPERTRAIL_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '';
-export const PAPERTRAIL_CONTRACT_NAME = 'papertrail';
+export const PAPERTRAIL_CONTRACT_NAME = 'papertrail-v';
 export const REGISTRATION_FEE_MICROSTX = 50000; // 0.05 STX
 
 export const APP_CONFIG = {
