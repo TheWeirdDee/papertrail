@@ -6,8 +6,8 @@
 import { isValidToken } from './security';
 import { logWarn, logErrorLevel } from './logger';
 
-const TOKEN_KEY = 'gm_session_token';
-const ADDRESS_KEY = 'gm_user_address';
+const TOKEN_KEY = 'papertrail_session_token';
+const ADDRESS_KEY = 'papertrail_user_address';
 
 /**
  * Stores session token in localStorage
