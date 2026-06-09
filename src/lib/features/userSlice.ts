@@ -28,7 +28,7 @@ interface UserState {
  */
 const getInitialAddress = () => {
   if (typeof window === 'undefined') return null;
-  const address = localStorage.getItem('gm_user_address');
+  const address = localStorage.getItem('papertrail_user_address');
   return address && isValidStacksAddress(address) ? address : null;
 };
 
@@ -46,12 +46,12 @@ const getInitialUsername = (address: string | null) => {
  */
 const getInitialSessionToken = () => {
   if (typeof window === 'undefined') return null;
-  const token = localStorage.getItem('gm_session_token');
+  const token = localStorage.getItem('papertrail_session_token');
   if (!token) return null;
   
   const parts = token.split('.');
   if (parts.length !== 3) {
-    localStorage.removeItem('gm_session_token');
+    localStorage.removeItem('papertrail_session_token');
     return null;
   }
   
@@ -70,7 +70,7 @@ const initialState: UserState = {
   bio: null,
   currentBlockHeight: 0,
   sessionToken: initialToken,
-  avatar: typeof window !== 'undefined' && initialAddress ? localStorage.getItem(`gm_avatar_${initialAddress}`) : null,
+  avatar: typeof window !== 'undefined' && initialAddress ? localStorage.getItem(`pt_avatar_${initialAddress}`) : null,
   website: null,
 };
 
@@ -95,7 +95,7 @@ const userSlice = createSlice({
       }
       
       if (typeof window !== 'undefined') {
-        localStorage.setItem('gm_user_address', action.payload.address);
+        localStorage.setItem('papertrail_user_address', action.payload.address);
       }
       
       if (!state.username || state.username.startsWith('ST')) {
@@ -111,13 +111,13 @@ const userSlice = createSlice({
       state.address = action.payload;
       state.isConnected = true;
       if (typeof window !== 'undefined') {
-        localStorage.setItem('gm_user_address', action.payload);
+        localStorage.setItem('papertrail_user_address', action.payload);
       }
     },
     logout(state) {
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('gm_session_token');
-        localStorage.removeItem('gm_user_address');
+        localStorage.removeItem('papertrail_session_token');
+        localStorage.removeItem('papertrail_user_address');
       }
       return {
         ...initialState,
@@ -138,7 +138,7 @@ const userSlice = createSlice({
     }>) {
       const addr = state.address;
       if (typeof window !== 'undefined' && action.payload && addr) {
-        if (action.payload.avatar !== undefined && action.payload.avatar) localStorage.setItem(`gm_avatar_${addr}`, action.payload.avatar);
+        if (action.payload.avatar !== undefined && action.payload.avatar) localStorage.setItem(`pt_avatar_${addr}`, action.payload.avatar);
       }
 
       if (action.payload.bio !== undefined) state.bio = action.payload.bio;
@@ -191,20 +191,20 @@ const userSlice = createSlice({
           if (parts.length === 3 && parts.every(part => part.length > 0)) {
             state.sessionToken = token;
             state.isConnected = true;
-            localStorage.setItem('gm_session_token', token);
+            localStorage.setItem('papertrail_session_token', token);
             logInfo('userSlice', 'Session token set');
           } else {
             logError('userSlice', 'Invalid token format');
             state.sessionToken = null;
             state.isConnected = false;
             state.address = null;
-            localStorage.removeItem('gm_session_token');
-            localStorage.removeItem('gm_user_address');
+            localStorage.removeItem('papertrail_session_token');
+            localStorage.removeItem('papertrail_user_address');
           }
         } else {
           state.sessionToken = null;
           state.isConnected = false;
-          localStorage.removeItem('gm_session_token');
+          localStorage.removeItem('papertrail_session_token');
         }
       }
     }
