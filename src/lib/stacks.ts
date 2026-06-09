@@ -102,7 +102,7 @@ export const authenticate = async (): Promise<string | null> => {
       throw new Error('Invalid address returned from wallet');
     }
 
-    localStorage.setItem('gm_user_address', stxAddress);
+    localStorage.setItem('papertrail_user_address', stxAddress);
     return stxAddress;
   } catch (err: any) {
     logError('authenticate', err);
@@ -117,8 +117,8 @@ export const authenticate = async (): Promise<string | null> => {
 export const getUserData = () => {
   if (typeof window === 'undefined') return null;
 
-  const stxAddress = localStorage.getItem('gm_user_address');
-  
+  const stxAddress = localStorage.getItem('papertrail_user_address');
+
   if (stxAddress && isValidStacksAddress(stxAddress)) {
     return toLegacyUserData(stxAddress);
   }
@@ -167,7 +167,7 @@ export const callContract = async (options: any) => {
     throw new Error('Contract call function not available');
   }
 
-  const storedAddress = localStorage.getItem('gm_user_address');
+  const storedAddress = localStorage.getItem('papertrail_user_address');
   if (!storedAddress || !isValidStacksAddress(storedAddress)) {
     throw new Error('Wallet not connected or invalid address');
   }
