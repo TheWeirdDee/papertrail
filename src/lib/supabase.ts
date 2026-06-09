@@ -35,7 +35,7 @@ export const supabase = createClient(
 export const getSupaClient = () => {
   if (typeof window === 'undefined') return supabase;
 
-  const token = localStorage.getItem('gm_session_token');
+  const token = localStorage.getItem('papertrail_session_token');
   
   if (!token || !isValidToken(token)) {
     return supabase;
