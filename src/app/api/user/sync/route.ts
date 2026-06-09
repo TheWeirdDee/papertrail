@@ -30,9 +30,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const contractAddress = 'SP1MQE0HMB765Z9EVF0CM6SPMMKW4VPDDSRKP54QX';
-    const contractName = 'gm-social-final-v5';
-
     // Fetch user profile from database
     try {
       const { data: profile, error: fetchError } = await supabase
