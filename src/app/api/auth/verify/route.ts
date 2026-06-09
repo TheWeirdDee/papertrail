@@ -175,7 +175,7 @@ export async function POST(req: NextRequest) {
     );
 
     // Set secure cookie
-    response.cookies.set('gm_session_token', token, {
+    response.cookies.set('papertrail_session_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
