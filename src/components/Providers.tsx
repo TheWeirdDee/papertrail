@@ -32,8 +32,8 @@ function AuthHydrator({
   useEffect(() => {
     setMounted(true);
     
-    const storedAddress = localStorage.getItem('gm_user_address');
-    const storedToken = localStorage.getItem('gm_session_token');
+    const storedAddress = localStorage.getItem('papertrail_user_address');
+    const storedToken = localStorage.getItem('papertrail_session_token');
     const effectiveAddress = initialUser?.address || storedAddress;
     
     if (effectiveAddress) {
@@ -61,8 +61,8 @@ function AuthHydrator({
         } catch (e) {
           console.warn('--- HYDRATOR: Stacks session corrupted. Clearing cache. ---', e);
           localStorage.removeItem('blockstack-session'); // The exact key used by @stacks/auth
-          localStorage.removeItem('gm_user_address');
-          localStorage.removeItem('gm_session_token');
+          localStorage.removeItem('papertrail_user_address');
+          localStorage.removeItem('papertrail_session_token');
           window.location.reload(); 
         }
       }
