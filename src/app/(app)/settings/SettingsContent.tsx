@@ -50,7 +50,7 @@ export default function SettingsContent() {
     
     setIsSaving(true);
     try {
-      const token = localStorage.getItem('gm_session_token');
+      const token = localStorage.getItem('papertrail_session_token');
       
       const { data, error } = await supabase
         .from('profiles')
