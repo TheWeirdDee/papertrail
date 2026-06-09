@@ -43,7 +43,7 @@ import { getServiceRoleClient } from "@/lib/supabase";
 async function getInitialSession() {
   try {
     const cookieStore = await cookies();
-    const token = cookieStore.get("gm_session_token")?.value;
+    const token = cookieStore.get("papertrail_session_token")?.value;
     
     if (!token || !process.env.LOCAL_SESSION_SECRET) return null;
 
