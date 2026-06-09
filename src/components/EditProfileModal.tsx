@@ -49,7 +49,7 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
     try {
       // Profile details are updated directly in Supabase for PaperTrail identity metadata
 
-      const token = localStorage.getItem('gm_session_token');
+      const token = localStorage.getItem('papertrail_session_token');
       const response = await fetch('/api/profile/update', {
         method: 'POST',
         headers: {
