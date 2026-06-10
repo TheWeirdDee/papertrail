@@ -17,19 +17,15 @@ export const APP_CONFIG = {
     : 'https://explorer.hiro.so?chain=testnet',
   defaultFee: 100000,
 };
-
 /**
  * Gets explorer link with validation
  */
 export const getExplorerLink = (id: string): string => {
   if (!id || typeof id !== 'string') return APP_CONFIG.explorerUrl;
-  
   const sanitizedId = id.trim();
   if (sanitizedId.length === 0) return APP_CONFIG.explorerUrl;
-  
   const isAddress = sanitizedId.startsWith('S');
   const path = isAddress ? 'address' : 'txid';
   const cleanId = (isAddress || sanitizedId.startsWith('0x')) ? sanitizedId : `0x${sanitizedId}`;
-  
   return `${APP_CONFIG.explorerUrl}/${path}/${encodeURIComponent(cleanId)}`;
 };
