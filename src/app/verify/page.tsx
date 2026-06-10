@@ -297,7 +297,7 @@ function ResultCard({
             )}
             <div className="flex items-center gap-3 mt-4">
               <a
-                href="/app/register"
+                href="/register"
                 className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-accent/10 text-accent border border-accent/20 hover:bg-accent/20 transition-colors"
               >
                 Register this document <ArrowRight size={11} />
