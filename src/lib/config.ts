@@ -17,7 +17,9 @@ export const APP_CONFIG = {
     : 'https://explorer.hiro.so?chain=testnet',
   defaultFee: 100000,
 };
-
+/**
+ * Gets explorer link with validation
+ */
 export const getExplorerLink = (id: string): string => {
   if (!id || typeof id !== 'string') return APP_CONFIG.explorerUrl;
   const sanitizedId = id.trim();
