@@ -27,7 +27,10 @@ const CATEGORIES = Object.entries(CATEGORY_NAMES).map(([id, name]) => ({
 
 export default function RegisterContent() {
   const router = useRouter();
+  const { isConnected, address } = useSelector((state: RootState) => state.user);
+
   const { isConnected } = useSelector((state: RootState) => state.user);
+ 
 
   const [file, setFile] = useState<File | null>(null);
   const [hash, setHash] = useState('');
@@ -93,6 +96,19 @@ export default function RegisterContent() {
         onFinish: (data: any) => {
           setTxid(data.txId);
           setIsSubmitting(false);
+          // Write to Supabase cache (fire-and-forget)
+          fetch('/api/documents/cache', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              hash,
+              owner: address,
+              title: title.trim(),
+              category,
+              registeredAt: 0,
+              txid: data.txId,
+            }),
+          }).catch(() => {/* non-critical */});
           setTimeout(() => {
             router.push(`/app/document/${hash}`);
           }, 1500);
