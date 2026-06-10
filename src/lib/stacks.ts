@@ -221,6 +221,7 @@ export const callContract = async (options: any) => {
       onCancel: () => {
         logWarn('stacks.callContract', 'TRANSACTION CANCELLED');
         toast.error('Transaction cancelled by user.');
+        if (options.onCancel) options.onCancel();
       }
     });
   } catch (err: any) {
