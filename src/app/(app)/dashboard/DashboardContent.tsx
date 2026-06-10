@@ -72,7 +72,7 @@ export default function DashboardContent() {
           </p>
         </div>
         <Link
-          href="/app/register"
+          href="/register"
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-black text-sm font-bold hover:bg-accent/90 transition-all shrink-0"
         >
           <PlusCircle size={16} /> Register Document
@@ -138,7 +138,7 @@ function DocCard({ doc }: { doc: CachedDoc }) {
 
   return (
     <Link
-      href={`/app/document/${doc.hash}`}
+      href={`/document/${doc.hash}`}
       className="block rounded-2xl border border-border bg-card hover:border-white/20 hover:bg-white/[0.03] transition-all p-5 group"
     >
       <div className="flex items-start justify-between gap-4">
@@ -219,7 +219,7 @@ function EmptyState() {
         Register your first document on Stacks to get started. It takes less than a minute.
       </p>
       <Link
-        href="/app/register"
+        href="/register"
         className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-black text-sm font-bold hover:bg-accent/90 transition-all"
       >
         <PlusCircle size={15} /> Register your first document
