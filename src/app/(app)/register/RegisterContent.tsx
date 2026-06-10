@@ -29,9 +29,6 @@ export default function RegisterContent() {
   const router = useRouter();
   const { isConnected, address } = useSelector((state: RootState) => state.user);
 
-  const { isConnected } = useSelector((state: RootState) => state.user);
- 
-
   const [file, setFile] = useState<File | null>(null);
   const [hash, setHash] = useState('');
   const [isHashing, setIsHashing] = useState(false);
