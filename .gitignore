@@ -48,7 +48,7 @@ Clarinet.toml.bak
 *.tsbuildinfo
 next-env.d.ts
 .npmrc
-
+/scripts/
 sync.log
 distribution.log
 npm-boost.log
