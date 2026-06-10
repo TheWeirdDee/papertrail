@@ -110,7 +110,7 @@ export default function DocumentContent({
           This hash has no record on PaperTrail.
         </p>
         <Link
-          href="/app/register"
+          href="/register"
           className="inline-flex items-center gap-2 text-sm text-accent hover:underline"
         >
           Register a document <ArrowLeft size={13} className="rotate-180" />
@@ -129,7 +129,7 @@ export default function DocumentContent({
   return (
     <div className="max-w-2xl mx-auto py-10 px-6 pb-32 space-y-6">
       <Link
-        href="/app/dashboard"
+        href="/dashboard"
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-white transition-colors"
       >
         <ArrowLeft size={14} /> Dashboard
