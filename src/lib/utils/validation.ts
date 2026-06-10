@@ -11,8 +11,8 @@
 export const isValidStacksAddress = (address: string): boolean => {
   if (!address || typeof address !== 'string') return false;
   
-  // Stacks addresses start with SP (mainnet), ST (testnet), or SM (mainnet multisig)
-  const stacksAddressRegex = /^(SP|ST|SM)[0-9A-Z]{30,32}$/;
+  // Stacks addresses: SP/ST/SM prefix + c32-encoded body (total 38–46 chars)
+  const stacksAddressRegex = /^(SP|ST|SM)[0-9A-Z]{30,44}$/;
   return stacksAddressRegex.test(address.toUpperCase());
 };
 
