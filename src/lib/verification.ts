@@ -16,13 +16,11 @@ export type VerifyResult =
   | { status: 'error'; message: string };
 
 export const CATEGORY_NAMES: Record<number, string> = {
-  1: 'Legal',
-  2: 'Education',
-  3: 'Medical',
-  4: 'Financial',
-  5: 'Identity',
-  6: 'Real Estate',
-  7: 'Other',
+  1: 'Education',
+  2: 'Professional',
+  3: 'Financial',
+  4: 'Property',
+  5: 'General',
 };
 
 export function isValidHash(hex: string): boolean {
