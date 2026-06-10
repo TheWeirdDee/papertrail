@@ -39,7 +39,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   const authLinks = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Register Document', href: '/app/register', icon: PlusCircle },
+    { name: 'Register Document', href: '/register', icon: PlusCircle },
     { name: 'Verify Document', href: '/verify', icon: Rss },
     { name: 'Profile', href: `/profile/${address}`, icon: UserIcon },
     { name: 'Leaderboard', href: '/leaderboard', icon: Trophy },
