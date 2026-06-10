@@ -51,10 +51,17 @@ next-env.d.ts
 
 sync.log
 distribution.log
+npm-boost.log
+npm-install-boost.log
 /tmp/
 .env.local.backup
 /private/
 /scripts/
+/scratch/
+scratch_contract.ts
+supabase_migration_feed.sql
+supabase_setup.sql
+
 # Ignore all markdown files except README
 **/*.md
 !**/README.md
