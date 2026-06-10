@@ -53,14 +53,23 @@ sync.log
 distribution.log
 npm-boost.log
 npm-install-boost.log
+*.log
+build_output.txt
+all_files.txt
 /tmp/
 .env.local.backup
 /private/
 /scripts/
 /scratch/
+/automated/
 scratch_contract.ts
 supabase_migration_feed.sql
 supabase_setup.sql
+*.sql
+/contracts/archive/
+src/lib/divineHelpers.ts
+src/lib/divineLogger.ts
+vitest.config.mts
 
 # Ignore all markdown files except README
 **/*.md
