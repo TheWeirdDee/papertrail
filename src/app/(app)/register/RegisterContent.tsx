@@ -107,7 +107,7 @@ export default function RegisterContent() {
             }),
           }).catch(() => {/* non-critical */});
           setTimeout(() => {
-            router.push(`/app/document/${hash}`);
+            router.push(`/document/${hash}`);
           }, 1500);
         },
         onCancel: () => {
