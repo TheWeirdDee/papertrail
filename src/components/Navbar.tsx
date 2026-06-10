@@ -48,7 +48,7 @@ export default function Navbar() {
 
   const authLinks = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Register Document', href: '/app/register', icon: Star },
+    { name: 'Register Document', href: '/register', icon: Star },
     { name: 'Profile', href: `/profile/${address}`, icon: UserIcon },
   ];
 
