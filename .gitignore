@@ -48,13 +48,13 @@ Clarinet.toml.bak
 *.tsbuildinfo
 next-env.d.ts
 .npmrc
-
 /scripts/
 sync.log
 distribution.log
 /tmp/
 .env.local.backup
 /private/
+/scripts/
 # Ignore all markdown files except README
 **/*.md
 !**/README.md
