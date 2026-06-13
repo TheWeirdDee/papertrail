@@ -2,16 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { 
-  LayoutDashboard, 
-  Rss, 
-  User as UserIcon, 
-  Trophy, 
-  Settings, 
+import {
+  LayoutDashboard,
+  Rss,
+  User as UserIcon,
+  Settings,
   PlusCircle,
-  Home,
   X,
-  Gift
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
@@ -34,7 +31,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   
   const publicLinks = [
     { name: 'Verify Document', href: '/verify', icon: Rss },
-    { name: 'Leaderboard', href: '/leaderboard', icon: Trophy },
   ];
 
   const authLinks = [
@@ -42,7 +38,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     { name: 'Register Document', href: '/register', icon: PlusCircle },
     { name: 'Verify Document', href: '/verify', icon: Rss },
     { name: 'Profile', href: `/profile/${address}`, icon: UserIcon },
-    { name: 'Leaderboard', href: '/leaderboard', icon: Trophy },
   ];
 
   const navLinks = isConnected ? authLinks : publicLinks;
