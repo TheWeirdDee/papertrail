@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabase, getServiceRoleClient } from '@/lib/supabase';
 import { getSecurityHeaders } from '@/lib/utils/security';
 import { isValidStacksAddress } from '@/lib/utils/validation';
 
@@ -14,7 +14,14 @@ export async function GET(
       return NextResponse.json({ error: 'Invalid address' }, { status: 400, headers: getSecurityHeaders() });
     }
 
-    const { data, error } = await supabase
+    let client;
+    try {
+      client = getServiceRoleClient();
+    } catch {
+      client = supabase;
+    }
+
+    const { data, error } = await client
       .from('document_cache')
       .select('hash, title, category, registered_at, is_revoked, revoked_at, txid, created_at')
       .eq('owner', address.toUpperCase())
