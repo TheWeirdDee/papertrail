@@ -18,8 +18,8 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/lib/store';
-import { authenticate, signInWithWallet } from '@/lib/stacks';
-import { setAddress, setSessionToken } from '@/lib/features/userSlice';
+import { authenticate } from '@/lib/stacks';
+import { setAddress } from '@/lib/features/userSlice';
 import { useRouter } from 'next/navigation';
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -66,28 +66,12 @@ export default function LandingContent() {
     if (!isConnected) {
       e.preventDefault();
       try {
-        console.log('--- LANDING HERO LOGIN INITIATED ---');
         const stxAddress = await authenticate();
         if (!stxAddress) return;
-        
         dispatch(setAddress(stxAddress));
-        
-        toast.loading('Verifying identity...', { id: 'auth' });
-        const authData: any = await signInWithWallet(stxAddress);
-        
-        if (!authData) {
-          console.log('--- LANDING AUTH CANCELLED ---');
-          toast.dismiss('auth');
-          return;
-        }
-
-        if (authData.token) {
-          dispatch(setSessionToken(authData.token));
-          toast.success("Identity Verified", { id: 'auth' });
-          router.push('/dashboard');
-        }
+        toast.success('Wallet connected!', { id: 'auth' });
+        router.push('/dashboard');
       } catch (err: unknown) {
-        console.error('Landing Auth Crash:', err);
         toast.error(err instanceof Error ? err.message : 'Login failed', { id: 'auth' });
       }
     } else {
