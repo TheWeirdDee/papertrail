@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
 import {
-  Upload,
   FileText,
   Check,
   Loader2,
@@ -13,12 +12,13 @@ import {
   ArrowRight,
   X,
 } from 'lucide-react';
-import { bufferCV, stringAsciiCV, uintCV } from '@stacks/transactions';
 import { hashFile, formatHash } from '@/lib/hash';
 import { CATEGORY_NAMES } from '@/lib/verification';
-import { callContract } from '@/lib/stacks';
-import { APP_CONFIG, REGISTRATION_FEE_MICROSTX } from '@/lib/config';
+import { registerDocument, getStxBalance } from '@/lib/stacks';
+import { REGISTRATION_FEE_MICROSTX } from '@/lib/config';
 import { RootState } from '@/lib/store';
+
+const FEE_STX = Number(REGISTRATION_FEE_MICROSTX) / 1_000_000;
 
 const CATEGORIES = Object.entries(CATEGORY_NAMES).map(([id, name]) => ({
   id: Number(id),
@@ -38,7 +38,26 @@ export default function RegisterContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [txid, setTxid] = useState('');
   const [error, setError] = useState('');
+  const [balance, setBalance] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Check STX balance on connect so we can warn before the wallet popup.
+  useEffect(() => {
+    let active = true;
+    if (isConnected && address) {
+      getStxBalance(address).then(b => {
+        if (active) setBalance(b);
+      });
+    } else {
+      setBalance(null);
+    }
+    return () => {
+      active = false;
+    };
+  }, [isConnected, address]);
+
+  const insufficientBalance =
+    balance !== null && balance < REGISTRATION_FEE_MICROSTX;
 
   const handleFile = useCallback(async (f: File) => {
     setFile(f);
@@ -75,21 +94,15 @@ export default function RegisterContent() {
   };
 
   const handleSubmit = async () => {
-    if (!hash || !title.trim() || !isConnected) return;
+    if (!hash || !title.trim() || !isConnected || insufficientBalance) return;
     setIsSubmitting(true);
     setError('');
 
     try {
-      const hashBytes = Buffer.from(hash, 'hex');
-      await callContract({
-        contractAddress: APP_CONFIG.contractAddress,
-        contractName: APP_CONFIG.contractName,
-        functionName: 'register-document',
-        functionArgs: [
-          bufferCV(hashBytes),
-          stringAsciiCV(title.trim()),
-          uintCV(BigInt(category)),
-        ],
+      await registerDocument({
+        hashHex: hash,
+        title: title.trim(),
+        category,
         onFinish: (data: any) => {
           setTxid(data.txId);
           setIsSubmitting(false);
@@ -104,6 +117,17 @@ export default function RegisterContent() {
               category,
               registeredAt: 0,
               txid: data.txId,
+            }),
+          }).catch(() => {/* non-critical */});
+          // Record a notification (fire-and-forget)
+          fetch('/api/notifications', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              address,
+              type: 'register',
+              title: 'Document registered',
+              body: `"${title.trim()}" was submitted to PaperTrail.`,
             }),
           }).catch(() => {/* non-critical */});
           setTimeout(() => {
@@ -125,6 +149,7 @@ export default function RegisterContent() {
     title.trim().length > 0 &&
     title.trim().length <= 100 &&
     isConnected &&
+    !insufficientBalance &&
     !isSubmitting;
 
   if (txid) {
@@ -150,7 +175,7 @@ export default function RegisterContent() {
         </h1>
         <p className="text-muted-foreground text-sm mt-2">
           Your file is hashed locally — it never leaves your device. Only the hash, title, and
-          category are stored on-chain for {Number(REGISTRATION_FEE_MICROSTX) / 1_000_000} STX.
+          category are stored on-chain for {FEE_STX} STX.
         </p>
       </div>
 
@@ -295,6 +320,16 @@ export default function RegisterContent() {
           file never leaves your device.
         </div>
 
+        {insufficientBalance && (
+          <div className="flex items-center gap-2 rounded-xl border border-orange-500/20 bg-orange-500/[0.05] px-4 py-3 text-orange-400 text-sm">
+            <AlertCircle size={14} className="shrink-0" />
+            <span>
+              You need at least {FEE_STX} STX to register a document. Your balance is{' '}
+              {(balance! / 1_000_000).toLocaleString(undefined, { maximumFractionDigits: 6 })} STX.
+            </span>
+          </div>
+        )}
+
         {error && (
           <div className="flex items-center gap-2 text-red-400 text-sm">
             <AlertCircle size={14} />
@@ -313,7 +348,7 @@ export default function RegisterContent() {
             </>
           ) : (
             <>
-              Register for 0.05 STX <ArrowRight size={15} />
+              Register for {FEE_STX} STX <ArrowRight size={15} />
             </>
           )}
         </button>
