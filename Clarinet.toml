@@ -4,12 +4,12 @@ authors = []
 description = "Onchain document verification on Stacks"
 telemetry = true
 requirements = []
-epoch = "2.5"
+epoch = "3.3"
 
 [contracts.papertrail]
 path = "contracts/papertrail.clar"
-clarity_version = 2
-epoch = "2.5"
+clarity_version = 4
+epoch = "3.3"
 
 [repl.analysis]
 passes = ["check_checker"]
