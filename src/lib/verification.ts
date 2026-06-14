@@ -1,5 +1,30 @@
 import { APP_CONFIG, PAPERTRAIL_CONTRACT_ADDRESS, PAPERTRAIL_CONTRACT_NAME } from './config';
 
+const apiBase = () =>
+  APP_CONFIG.isMainnet ? 'https://api.mainnet.hiro.so' : 'https://api.testnet.hiro.so';
+
+// Calls a read-only contract function via the Hiro node and returns the decoded value.
+async function callRead(fn: string, args: string[]): Promise<unknown> {
+  const { deserializeCV, cvToValue } = await import('@stacks/transactions');
+
+  const res = await fetch(
+    `${apiBase()}/v2/contracts/call-read/${PAPERTRAIL_CONTRACT_ADDRESS}/${PAPERTRAIL_CONTRACT_NAME}/${fn}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sender: PAPERTRAIL_CONTRACT_ADDRESS, arguments: args }),
+      signal: AbortSignal.timeout(15000),
+    }
+  );
+
+  if (!res.ok) throw new Error(`Hiro API returned ${res.status}`);
+
+  const { okay, result } = await res.json();
+  if (!okay || !result) throw new Error('Contract read failed');
+
+  return cvToValue(deserializeCV(result));
+}
+
 export type DocumentRecord = {
   owner: string;
   title: string;
@@ -33,49 +58,76 @@ function encodeClarityBuffer(hexStr: string): string {
   return '0x02' + len.toString(16).padStart(8, '0') + hexStr;
 }
 
+// Decodes the raw cvToValue result of `get-document` into a DocumentRecord.
+function decodeDocument(value: any): DocumentRecord | null {
+  if (value === null || value === undefined) return null;
+  return {
+    owner: String(value.owner ?? ''),
+    title: String(value.title ?? ''),
+    category: Number(value.category ?? 5),
+    registeredAt: Number(value['registered-at'] ?? 0),
+    isRevoked: Boolean(value['is-revoked']),
+    revokedAt: value['revoked-at'] != null ? Number(value['revoked-at']) : null,
+  };
+}
+
 export async function getDocument(hashHex: string): Promise<VerifyResult> {
   try {
-    const { deserializeCV, cvToValue } = await import('@stacks/transactions');
-
-    const apiBase = APP_CONFIG.isMainnet
-      ? 'https://api.mainnet.hiro.so'
-      : 'https://api.testnet.hiro.so';
-
-    const res = await fetch(
-      `${apiBase}/v2/contracts/call-read/${PAPERTRAIL_CONTRACT_ADDRESS}/${PAPERTRAIL_CONTRACT_NAME}/get-document`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sender: PAPERTRAIL_CONTRACT_ADDRESS,
-          arguments: [encodeClarityBuffer(hashHex)],
-        }),
-        signal: AbortSignal.timeout(15000),
-      }
-    );
-
-    if (!res.ok) throw new Error(`Hiro API returned ${res.status}`);
-
-    const { okay, result } = await res.json();
-    if (!okay || !result) throw new Error('Contract read failed');
-
-    const cv = deserializeCV(result);
-    const value = cvToValue(cv);
-
-    if (value === null || value === undefined) return { status: 'not_found' };
-
-    const doc: DocumentRecord = {
-      owner: String(value.owner ?? ''),
-      title: String(value.title ?? ''),
-      category: Number(value.category ?? 7),
-      registeredAt: Number(value['registered-at'] ?? 0),
-      isRevoked: Boolean(value['is-revoked']),
-      revokedAt: value['revoked-at'] != null ? Number(value['revoked-at']) : null,
-    };
-
+    const value = await callRead('get-document', [encodeClarityBuffer(hashHex)]);
+    const doc = decodeDocument(value);
+    if (!doc) return { status: 'not_found' };
     return { status: doc.isRevoked ? 'revoked' : 'verified', doc };
   } catch (err: any) {
     return { status: 'error', message: err?.message || 'Verification failed' };
+  }
+}
+
+export type OwnerDocument = DocumentRecord & { hash: string };
+
+// Reads a wallet's documents directly from the contract (source of truth).
+// Uses the on-chain pagination index: get-document-count + get-owner-document-at.
+export async function getDocumentsByOwner(address: string): Promise<OwnerDocument[]> {
+  const { principalCV, uintCV, serializeCV } = await import('@stacks/transactions');
+  const ownerArg = '0x' + serializeCV(principalCV(address));
+
+  const countValue = await callRead('get-document-count', [ownerArg]);
+  const count = Number(countValue ?? 0);
+  if (!count) return [];
+
+  const indices = Array.from({ length: count }, (_, i) => i);
+  const results = await Promise.all(
+    indices.map(async i => {
+      try {
+        const at = (await callRead('get-owner-document-at', [
+          ownerArg,
+          '0x' + serializeCV(uintCV(i)),
+        ])) as any;
+        const hash = at?.hash;
+        if (!hash) return null;
+        const hashHex = String(hash).replace(/^0x/, '');
+        const doc = decodeDocument(await callRead('get-document', [encodeClarityBuffer(hashHex)]));
+        return doc ? ({ ...doc, hash: hashHex } as OwnerDocument) : null;
+      } catch {
+        return null;
+      }
+    })
+  );
+
+  return results.filter((d): d is OwnerDocument => d !== null);
+}
+
+export type PlatformStats = { totalRegistrations: number; totalUniqueOwners: number };
+
+// Reads global platform stats from the contract's get-stats read function.
+export async function getStats(): Promise<PlatformStats> {
+  try {
+    const value = (await callRead('get-stats', [])) as any;
+    return {
+      totalRegistrations: Number(value?.['total-registrations'] ?? 0),
+      totalUniqueOwners: Number(value?.['total-unique-owners'] ?? 0),
+    };
+  } catch {
+    return { totalRegistrations: 0, totalUniqueOwners: 0 };
   }
 }
 
