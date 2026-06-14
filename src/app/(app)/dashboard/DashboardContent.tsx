@@ -13,7 +13,7 @@ import {
   Loader2,
   AlertCircle,
 } from 'lucide-react';
-import { CATEGORY_NAMES } from '@/lib/verification';
+import { CATEGORY_NAMES, getDocumentsByOwner } from '@/lib/verification';
 import { APP_CONFIG } from '@/lib/config';
 import { RootState } from '@/lib/store';
 
@@ -43,10 +43,43 @@ export default function DashboardContent() {
       const res = await fetch(`/api/documents/user/${address}`);
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || 'Failed to load documents');
-      setDocs(json.documents ?? []);
+      const cached: CachedDoc[] = json.documents ?? [];
+      setDocs(cached);
+      setIsLoading(false);
+
+      // Reconcile against the contract (source of truth). This recovers documents
+      // whose cache write failed and corrects stale revocation status.
+      try {
+        const onchain = await getDocumentsByOwner(address);
+        if (onchain.length === 0) return;
+
+        const byHash = new Map<string, CachedDoc>();
+        for (const d of cached) byHash.set(d.hash.toLowerCase(), d);
+
+        for (const d of onchain) {
+          const key = d.hash.toLowerCase();
+          const existing = byHash.get(key);
+          byHash.set(key, {
+            hash: key,
+            title: d.title || existing?.title || 'Untitled',
+            category: d.category || existing?.category || 5,
+            registered_at: d.registeredAt,
+            is_revoked: d.isRevoked,
+            revoked_at: d.revokedAt,
+            txid: existing?.txid ?? null,
+            created_at: existing?.created_at ?? new Date().toISOString(),
+          });
+        }
+
+        const merged = Array.from(byHash.values()).sort(
+          (a, b) => (b.registered_at || Number.MAX_SAFE_INTEGER) - (a.registered_at || Number.MAX_SAFE_INTEGER)
+        );
+        setDocs(merged);
+      } catch {
+        /* on-chain reconcile is best-effort; cache already displayed */
+      }
     } catch (err: any) {
       setError(err.message);
-    } finally {
       setIsLoading(false);
     }
   }, [address]);
