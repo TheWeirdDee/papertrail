@@ -3,7 +3,7 @@
  * Handles wallet authentication, generic contract calls, and network status
  */
 
-import { APP_CONFIG } from './config';
+import { APP_CONFIG, REGISTRATION_FEE_MICROSTX } from './config';
 import { toast } from 'react-hot-toast';
 // store is lazy-loaded to break circular dependency
 const getStore = () => require('./store').store;
@@ -388,4 +388,97 @@ export const signInWithWallet = async (address: string): Promise<{ token: string
   }
 };
 
-// PaperTrail contract functions will be added here
+// --- PaperTrail contract functions ---
+
+/**
+ * Fetches a wallet's STX balance in microSTX.
+ * @param address - Stacks address to query
+ * @returns Balance in microSTX, or 0 on failure
+ */
+export const getStxBalance = async (address: string): Promise<number> => {
+  if (!isValidStacksAddress(address)) return 0;
+
+  const apiBase = APP_CONFIG.isMainnet
+    ? 'https://api.mainnet.hiro.so'
+    : 'https://api.testnet.hiro.so';
+
+  try {
+    const res = await fetch(`${apiBase}/extended/v1/address/${address}/stx`, {
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!res.ok) throw new Error(`API returned ${res.status}`);
+    const data = await res.json();
+    const micro = Number(data?.balance ?? 0);
+    return isNaN(micro) ? 0 : micro;
+  } catch (error: any) {
+    logError('getStxBalance', error);
+    return 0;
+  }
+};
+
+type RegisterArgs = {
+  hashHex: string;
+  title: string;
+  category: number;
+  onFinish?: (data: any) => void;
+  onCancel?: () => void;
+};
+
+/**
+ * Registers a document hash on-chain. Adds an explicit STX post-condition so the
+ * wallet can only spend exactly the registration fee.
+ */
+export const registerDocument = async ({
+  hashHex,
+  title,
+  category,
+  onFinish,
+  onCancel,
+}: RegisterArgs) => {
+  const { bufferCV, stringAsciiCV, uintCV, Pc } = getTransactions();
+  const sender = localStorage.getItem('papertrail_user_address');
+  if (!sender || !isValidStacksAddress(sender)) {
+    throw new Error('Wallet not connected or invalid address');
+  }
+
+  await callContract({
+    contractAddress: APP_CONFIG.contractAddress,
+    contractName: APP_CONFIG.contractName,
+    functionName: 'register-document',
+    functionArgs: [
+      bufferCV(Buffer.from(hashHex, 'hex')),
+      stringAsciiCV(title),
+      uintCV(BigInt(category)),
+    ],
+    postConditionMode: 'deny',
+    postConditions: [Pc.principal(sender).willSendEq(REGISTRATION_FEE_MICROSTX).ustx()],
+    onFinish,
+    onCancel,
+  });
+};
+
+/**
+ * Revokes a previously registered document (owner only). No STX movement,
+ * so an empty deny post-condition set is sufficient.
+ */
+export const revokeDocument = async ({
+  hashHex,
+  onFinish,
+  onCancel,
+}: {
+  hashHex: string;
+  onFinish?: (data: any) => void;
+  onCancel?: () => void;
+}) => {
+  const { bufferCV } = getTransactions();
+  await callContract({
+    contractAddress: APP_CONFIG.contractAddress,
+    contractName: APP_CONFIG.contractName,
+    functionName: 'revoke-document',
+    functionArgs: [bufferCV(Buffer.from(hashHex, 'hex'))],
+    postConditionMode: 'deny',
+    postConditions: [],
+    onFinish,
+    onCancel,
+  });
+};
