@@ -19,9 +19,8 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 import Link from 'next/link';
-import { bufferCV } from '@stacks/transactions';
 import { getDocument, buildVerificationUrl, CATEGORY_NAMES, type VerifyResult } from '@/lib/verification';
-import { callContract } from '@/lib/stacks';
+import { revokeDocument } from '@/lib/stacks';
 import { APP_CONFIG } from '@/lib/config';
 import { RootState } from '@/lib/store';
 
@@ -58,15 +57,33 @@ export default function DocumentContent({
 
   const handleRevoke = async () => {
     setIsRevoking(true);
-    const hashBytes = Buffer.from(hash, 'hex');
-    await callContract({
-      contractAddress: APP_CONFIG.contractAddress,
-      contractName: APP_CONFIG.contractName,
-      functionName: 'revoke-document',
-      functionArgs: [bufferCV(hashBytes)],
+    await revokeDocument({
+      hashHex: hash,
       onFinish: () => {
         setIsRevoking(false);
         setShowRevokeConfirm(false);
+        // Mark the cached copy revoked + record a notification (fire-and-forget)
+        if (address) {
+          const docTitle =
+            result && result.status !== 'error' && result.status !== 'not_found'
+              ? result.doc.title
+              : undefined;
+          fetch('/api/documents/cache', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ hash, owner: address, isRevoked: true }),
+          }).catch(() => {/* non-critical */});
+          fetch('/api/notifications', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              address,
+              type: 'revoke',
+              title: 'Document revoked',
+              body: docTitle ? `"${docTitle}" was revoked.` : undefined,
+            }),
+          }).catch(() => {/* non-critical */});
+        }
         setTimeout(() => fetchDoc(), 3000);
       },
       onCancel: () => {
