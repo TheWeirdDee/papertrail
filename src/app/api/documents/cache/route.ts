@@ -44,3 +44,32 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to cache document' }, { status: 500, headers: getSecurityHeaders() });
   }
 }
+
+// PATCH — mark a cached document as revoked. Owner-scoped to prevent tampering
+// with other wallets' rows. The contract remains the source of truth.
+export async function PATCH(req: NextRequest) {
+  try {
+    const { hash, owner, isRevoked } = await req.json();
+
+    if (!hash || typeof hash !== 'string' || !/^[0-9a-f]{64}$/i.test(hash)) {
+      return NextResponse.json({ error: 'Invalid hash' }, { status: 400, headers: getSecurityHeaders() });
+    }
+    if (!owner || !isValidStacksAddress(owner)) {
+      return NextResponse.json({ error: 'Invalid owner address' }, { status: 400, headers: getSecurityHeaders() });
+    }
+
+    const db = getServiceRoleClient();
+    const { error } = await db
+      .from('document_cache')
+      .update({ is_revoked: isRevoked === true })
+      .eq('hash', hash.toLowerCase())
+      .eq('owner', owner.toUpperCase());
+
+    if (error) throw error;
+
+    return NextResponse.json({ ok: true }, { headers: getSecurityHeaders() });
+  } catch (err: any) {
+    console.error('[documents/cache PATCH]', err?.message);
+    return NextResponse.json({ error: 'Failed to update document' }, { status: 500, headers: getSecurityHeaders() });
+  }
+}
