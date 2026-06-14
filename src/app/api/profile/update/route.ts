@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServiceRoleClient } from '@/lib/supabase';
 import { getSecurityHeaders, checkRateLimit, extractBearerToken } from '@/lib/utils/security';
 import { createErrorResponse, createSuccessResponse, logError } from '@/lib/utils/errors';
-import { isValidStacksAddress, isValidUsername, isValidUrl, sanitizeInput, isValidAmount } from '@/lib/utils/validation';
+import { isValidStacksAddress, isValidUsername, isValidUrl, sanitizeInput } from '@/lib/utils/validation';
 import * as jose from 'jose';
 
 const MAX_BIO_LENGTH = 500;
@@ -63,12 +63,7 @@ export async function POST(req: NextRequest) {
       username,
       bio,
       avatar_url,
-      website,
-      streak,
-      reputation,
-      gm_balance,
-      total_tipped,
-      total_received
+      website
     } = await req.json();
 
     // Validate optional fields
@@ -115,26 +110,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Validate numeric fields
-    const validNumbers = {
-      streak: streak,
-      reputation: reputation,
-      gm_balance: gm_balance,
-      total_tipped: total_tipped,
-      total_received: total_received
-    };
-
-    for (const [field, value] of Object.entries(validNumbers)) {
-      if (value !== undefined && value !== null) {
-        if (!isValidAmount(value, 0)) {
-          return NextResponse.json(
-            createErrorResponse(400, `${field} must be a valid number`, `INVALID_${field.toUpperCase()}`),
-            { status: 400, headers: { ...getSecurityHeaders() } }
-          );
-        }
-      }
-    }
-
     // Update profile
     try {
       const supabase = getServiceRoleClient();
@@ -148,11 +123,6 @@ export async function POST(req: NextRequest) {
       if (bio !== undefined) updateData.bio = bio ? sanitizeInput(bio) : bio;
       if (avatar_url !== undefined) updateData.avatar_url = avatar_url;
       if (website !== undefined) updateData.website = website;
-      if (streak !== undefined) updateData.streak = Math.max(0, streak || 0);
-      if (reputation !== undefined) updateData.reputation = Math.max(0, reputation || 0);
-      if (gm_balance !== undefined) updateData.gm_balance = Math.max(0, gm_balance || 0);
-      if (total_tipped !== undefined) updateData.total_tipped = Math.max(0, total_tipped || 0);
-      if (total_received !== undefined) updateData.total_received = Math.max(0, total_received || 0);
 
       const { data: updatedProfile, error } = await supabase
         .from('profiles')
