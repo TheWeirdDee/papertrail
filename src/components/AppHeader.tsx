@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/lib/store';
 import BrandLogo from './BrandLogo';
-import { Bell, Settings, LogOut, User, Menu, Search, ChevronDown, Home, Wallet, Send } from 'lucide-react';
+import { Settings, LogOut, User, Menu, Search, ChevronDown, Wallet, Copy, Check } from 'lucide-react';
 import Link from 'next/link';
 import IdentityAvatar from './IdentityAvatar';
 import NotificationBell from './NotificationBell';
@@ -25,6 +25,17 @@ export default function AppHeader({ onMenuClick }: AppHeaderProps) {
   const { login } = useWalletAuth();
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
+  const [copiedAddress, setCopiedAddress] = useState(false);
+
+  const truncateAddr = (addr: string | null) =>
+    addr ? `${addr.slice(0, 5)}...${addr.slice(-4)}` : '';
+
+  const copyAddress = async () => {
+    if (!address) return;
+    await navigator.clipboard.writeText(address);
+    setCopiedAddress(true);
+    setTimeout(() => setCopiedAddress(false), 2000);
+  };
   const dropdownRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
 
@@ -111,7 +122,18 @@ export default function AppHeader({ onMenuClick }: AppHeaderProps) {
                     <div className="absolute right-0 sm:-right-4 mt-5 w-[90vw] sm:w-64 rounded-[2.5rem] border border-white/10 bg-[#0A0A0A] shadow-[0_30px_100px_rgba(0,0,0,0.8)] py-4 overflow-hidden z-50 animate-in fade-in slide-in-from-top-4 duration-500">
                       <div className="px-6 py-4 border-b border-white/[0.03] mb-3 bg-white/[0.01]">
                         <p className="text-[9px] uppercase tracking-[0.3em] text-gray-600 font-black mb-1.5">Authorized Wallet</p>
-                        <p className="text-[10px] font-mono text-gray-400 truncate opacity-60">{address}</p>
+                        <div className="flex items-center gap-2 group/addr">
+                          <p className="text-[10px] font-mono text-gray-400 opacity-60">{truncateAddr(address)}</p>
+                          <button
+                            onClick={copyAddress}
+                            className="opacity-0 group-hover/addr:opacity-100 transition-opacity p-0.5 rounded text-gray-600 hover:text-white"
+                            title="Copy address"
+                          >
+                            {copiedAddress
+                              ? <Check className="h-3 w-3 text-green-400" />
+                              : <Copy className="h-3 w-3" />}
+                          </button>
+                        </div>
                       </div>
                       
                       <Link href={`/profile/${address}`} onClick={() => setShowUserDropdown(false)} className="mx-3 flex items-center gap-4 px-4 py-3 text-sm text-gray-400 hover:bg-white/[0.03] hover:text-white rounded-2xl transition-all group">
