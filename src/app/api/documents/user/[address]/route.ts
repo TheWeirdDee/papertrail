@@ -27,11 +27,14 @@ export async function GET(
       .eq('owner', address.toUpperCase())
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.error('[documents/user GET] query error:', error?.message);
+      return NextResponse.json({ documents: [] }, { headers: getSecurityHeaders() });
+    }
 
     return NextResponse.json({ documents: data ?? [] }, { headers: getSecurityHeaders() });
   } catch (err: any) {
     console.error('[documents/user GET]', err?.message);
-    return NextResponse.json({ error: 'Failed to fetch documents' }, { status: 500, headers: getSecurityHeaders() });
+    return NextResponse.json({ documents: [] }, { headers: getSecurityHeaders() });
   }
 }
