@@ -43,8 +43,8 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               <li><Link href="/#features" className="text-gray-500 hover:text-[var(--color-accent)] transition-colors">Features</Link></li>
               <li><Link href="/#how-it-works" className="text-gray-500 hover:text-[var(--color-accent)] transition-colors">How It Works</Link></li>
-              <li><Link href="#" className="text-gray-500 hover:text-[var(--color-accent)] transition-colors">Verify</Link></li>
-              <li><Link href="/leaderboard" className="text-gray-500 hover:text-[var(--color-accent)] transition-colors">Leaderboard</Link></li>
+              <li><Link href="/verify" className="text-gray-500 hover:text-[var(--color-accent)] transition-colors">Verify</Link></li>
+              <li><Link href="/register" className="text-gray-500 hover:text-[var(--color-accent)] transition-colors">Register</Link></li>
             </ul>
           </div>
 
