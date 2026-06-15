@@ -21,7 +21,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid category' }, { status: 400, headers: getSecurityHeaders() });
     }
 
-    const db = getServiceRoleClient();
+    let db;
+    try {
+      db = getServiceRoleClient();
+    } catch {
+      console.warn('[documents/cache POST] service role key not configured — cache write skipped');
+      return NextResponse.json({ ok: true, cached: false }, { headers: getSecurityHeaders() });
+    }
 
     const { error } = await db.from('document_cache').upsert(
       {
@@ -58,7 +64,13 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid owner address' }, { status: 400, headers: getSecurityHeaders() });
     }
 
-    const db = getServiceRoleClient();
+    let db;
+    try {
+      db = getServiceRoleClient();
+    } catch {
+      console.warn('[documents/cache PATCH] service role key not configured');
+      return NextResponse.json({ ok: true, cached: false }, { headers: getSecurityHeaders() });
+    }
     const { error } = await db
       .from('document_cache')
       .update({ is_revoked: isRevoked === true })
