@@ -1,0 +1,3 @@
+# Clarity contracts must use LF line endings — the Clarinet/clarinet-sdk parser
+# rejects CRLF. Pin them so checkout on Windows doesn't reintroduce CRLF.
+*.clar text eol=lf
