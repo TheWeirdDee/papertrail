@@ -1,5 +1,13 @@
+ 
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" width="100" height="120">
   <rect x="18" y="5" width="16" height="110" rx="3" fill="white"/>
   <path d="M 34 21 Q 82 21 82 49 Q 82 77 34 77 L 34 61 Q 62 61 62 49 Q 62 37 34 37 Z" fill="white"/>
   <rect x="5" y="5" width="90" height="16" rx="3" fill="#22d3ee"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" fill="currentColor">
+  <!-- Horizontal crossbar at top -->
+  <rect x="5" y="5" width="90" height="16" rx="3"/>
+  <!-- Vertical stroke -->
+  <rect x="18" y="5" width="16" height="110" rx="3"/>
+  <!-- P bowl: right side curve -->
+  <path d="M 34 21 Q 82 21 82 49 Q 82 77 34 77 L 34 61 Q 62 61 62 49 Q 62 37 34 37 Z"/>
 </svg>

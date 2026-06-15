@@ -393,10 +393,10 @@ export const signInWithWallet = async (address: string): Promise<{ token: string
 /**
  * Fetches a wallet's STX balance in microSTX.
  * @param address - Stacks address to query
- * @returns Balance in microSTX, or 0 on failure
+ * @returns Balance in microSTX, or null if the fetch fails (caller must handle null)
  */
-export const getStxBalance = async (address: string): Promise<number> => {
-  if (!isValidStacksAddress(address)) return 0;
+export const getStxBalance = async (address: string): Promise<number | null> => {
+  if (!isValidStacksAddress(address)) return null;
 
   const apiBase = APP_CONFIG.isMainnet
     ? 'https://api.mainnet.hiro.so'
@@ -409,10 +409,10 @@ export const getStxBalance = async (address: string): Promise<number> => {
     if (!res.ok) throw new Error(`API returned ${res.status}`);
     const data = await res.json();
     const micro = Number(data?.balance ?? 0);
-    return isNaN(micro) ? 0 : micro;
+    return isNaN(micro) ? null : micro;
   } catch (error: any) {
     logError('getStxBalance', error);
-    return 0;
+    return null;
   }
 };
 

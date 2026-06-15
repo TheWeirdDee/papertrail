@@ -38,7 +38,7 @@ export default function RegisterContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [txid, setTxid] = useState('');
   const [error, setError] = useState('');
-  const [balance, setBalance] = useState<number | null>(null);
+  const [balance, setBalance] = useState<number | null | undefined>(undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Check STX balance on connect so we can warn before the wallet popup.
@@ -49,15 +49,17 @@ export default function RegisterContent() {
         if (active) setBalance(b);
       });
     } else {
-      setBalance(null);
+      setBalance(undefined);
     }
     return () => {
       active = false;
     };
   }, [isConnected, address]);
 
+  // Only block if we have a confirmed balance that is genuinely too low.
+  // null means the balance check failed — don't block, let the wallet handle it.
   const insufficientBalance =
-    balance !== null && balance < REGISTRATION_FEE_MICROSTX;
+    typeof balance === 'number' && balance < REGISTRATION_FEE_MICROSTX;
 
   const handleFile = useCallback(async (f: File) => {
     setFile(f);
