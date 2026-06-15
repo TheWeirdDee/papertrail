@@ -7,6 +7,21 @@ export const PAPERTRAIL_CONTRACT_ADDRESS = (process.env.NEXT_PUBLIC_CONTRACT_ADD
 export const PAPERTRAIL_CONTRACT_NAME = 'papertrail-v';
 export const REGISTRATION_FEE_MICROSTX = 50000; // 0.05 STX
 
+// Fail loud in development if the contract address is missing — otherwise
+// read calls silently build malformed URLs and fail at runtime.
+if (!PAPERTRAIL_CONTRACT_ADDRESS) {
+  const msg =
+    '[config] NEXT_PUBLIC_CONTRACT_ADDRESS is not set. Contract reads/writes will fail. ' +
+    'Set it in .env.local (see .env.example).';
+  if (process.env.NODE_ENV === 'production') {
+    console.error(msg);
+  } else {
+    console.warn(msg);
+  }
+}
+
+export const QUALIFIED_CONTRACT = `${PAPERTRAIL_CONTRACT_ADDRESS}.${PAPERTRAIL_CONTRACT_NAME}` as const;
+
 export const APP_CONFIG = {
   contractAddress: PAPERTRAIL_CONTRACT_ADDRESS,
   contractName: PAPERTRAIL_CONTRACT_NAME,
