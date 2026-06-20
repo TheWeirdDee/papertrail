@@ -6,6 +6,7 @@ import ProfileSettingsCards from '@/components/ProfileSettingsCards';
 import SecuritySection from '@/components/profile-sections/SecuritySection';
 import NotificationsSection from '@/components/profile-sections/NotificationsSection';
 import DataExportSection from '@/components/profile-sections/DataExportSection';
+import ProfileDocumentsSection from '@/components/profile-sections/ProfileDocumentsSection';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/store';
 import Link from 'next/link';
@@ -37,6 +38,8 @@ export default function ProfileContent({ params }: { params: Promise<{ address: 
     switch (activeTab) {
       case 'profile':
         return <ProfileSettingsCards targetAddress={targetAddress} />;
+      case 'documents':
+        return <ProfileDocumentsSection address={targetAddress} />;
       case 'security':
         return <SecuritySection address={targetAddress} />;
       case 'notifications':
