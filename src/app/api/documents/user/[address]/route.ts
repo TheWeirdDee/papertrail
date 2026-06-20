@@ -23,7 +23,7 @@ export async function GET(
 
     const { data, error } = await client
       .from('document_cache')
-      .select('hash, title, category, registered_at, is_revoked, revoked_at, txid, created_at')
+      .select('hash, title, description, category, registered_at, is_revoked, revoked_at, expires_at, txid, created_at')
       .eq('owner', address.toUpperCase())
       .order('created_at', { ascending: false });
 
