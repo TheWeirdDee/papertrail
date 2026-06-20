@@ -1,12 +1,13 @@
 'use client';
 
-import { User, Shield, Bell, Download, LogOut } from 'lucide-react';
+import { User, Shield, Bell, Download, LogOut, FileText } from 'lucide-react';
 import { useDispatch } from 'react-redux';
 import { logout } from '@/lib/features/userSlice';
 import { useRouter } from 'next/navigation';
 
 const NAV_ITEMS = [
   { id: 'profile', label: 'My Profile', icon: User },
+  { id: 'documents', label: 'Documents', icon: FileText },
   { id: 'security', label: 'Security', icon: Shield },
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'data', label: 'Data Export', icon: Download },
