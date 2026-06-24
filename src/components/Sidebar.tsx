@@ -9,6 +9,7 @@ import {
   Settings,
   PlusCircle,
   X,
+  Globe,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
@@ -30,12 +31,14 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   }, []);
   
   const publicLinks = [
+    { name: 'Explore', href: '/explore', icon: Globe },
     { name: 'Verify Document', href: '/verify', icon: Rss },
   ];
 
   const authLinks = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Register Document', href: '/register', icon: PlusCircle },
+    { name: 'Explore', href: '/explore', icon: Globe },
     { name: 'Verify Document', href: '/verify', icon: Rss },
     { name: 'Profile', href: `/profile/${address}`, icon: UserIcon },
   ];
