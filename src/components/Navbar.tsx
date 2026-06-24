@@ -4,14 +4,16 @@ import { RootState } from '@/lib/store';
 import { logout } from '@/lib/features/userSlice';
 import { useWalletAuth } from '@/hooks/useWalletAuth';
 import { toast } from 'react-hot-toast';
-import { Star, Info, LayoutDashboard } from 'lucide-react';
+import { Info, LayoutDashboard, Globe, HelpCircle, DollarSign, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import BrandLogo from './BrandLogo';
 
 const NAV_LINKS = [
-  { name: 'Features', href: '/#features', icon: Star },
   { name: 'How it works', href: '/#how-it-works', icon: Info },
-  { name: 'Verify Document', href: '/verify', icon: Info },
+  { name: 'Pricing', href: '/pricing', icon: DollarSign },
+  { name: 'Explore', href: '/explore', icon: Globe },
+  { name: 'Verify', href: '/verify', icon: ShieldCheck },
+  { name: 'FAQ', href: '/faq', icon: HelpCircle },
 ];
 
 export default function Navbar() {
@@ -41,7 +43,7 @@ export default function Navbar() {
           <BrandLogo size={32} />
         </Link>
 
-        {/* Desktop nav links */}
+        {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-6">
           {NAV_LINKS.map((link) => {
             const Icon = link.icon;
@@ -50,11 +52,11 @@ export default function Navbar() {
               <Link
                 key={link.name}
                 href={link.href}
-                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-[var(--color-accent)] ${
+                className={`flex items-center gap-1.5 text-sm font-medium transition-colors hover:text-[var(--color-accent)] ${
                   isActive ? 'text-[var(--color-accent)]' : 'text-gray-400'
                 }`}
               >
-                <Icon className="h-4 w-4" />
+                <Icon className="h-3.5 w-3.5" />
                 {link.name}
               </Link>
             );
@@ -92,7 +94,7 @@ export default function Navbar() {
 
       {/* Mobile bottom nav */}
       <div className="md:hidden flex flex-wrap items-center justify-around bg-[#0a0a0a] p-2 fixed bottom-0 w-full z-50 gap-y-2">
-        {NAV_LINKS.map((link) => {
+        {NAV_LINKS.slice(0, 4).map((link) => {
           const Icon = link.icon;
           const isActive = !link.href.includes('#') && pathname === link.href;
           return (
