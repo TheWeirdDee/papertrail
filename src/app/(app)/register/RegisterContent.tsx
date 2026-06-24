@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
 import {
   FileText, Check, Loader2, AlertCircle, ChevronDown,
-  ArrowRight, X, Plus, Trash2, Twitter, Copy, ExternalLink, Layers,
+  ArrowRight, X, Plus, Trash2, Copy, ExternalLink, Layers,
 } from 'lucide-react';
 import { hashFile, formatHash } from '@/lib/hash';
 import { CATEGORY_NAMES, buildVerificationUrl } from '@/lib/verification';
@@ -230,7 +230,7 @@ export default function RegisterContent() {
             target="_blank" rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#1DA1F2]/10 border border-[#1DA1F2]/20 text-[#1DA1F2] text-sm font-semibold hover:bg-[#1DA1F2]/20 transition-colors"
           >
-            <Twitter size={15} /> Share on X
+            <X size={15} /> Share on X
           </a>
           <button
             onClick={() => {
