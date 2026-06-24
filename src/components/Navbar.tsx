@@ -4,14 +4,16 @@ import { RootState } from '@/lib/store';
 import { logout } from '@/lib/features/userSlice';
 import { useWalletAuth } from '@/hooks/useWalletAuth';
 import { toast } from 'react-hot-toast';
-import { Star, Info, LayoutDashboard } from 'lucide-react';
+import { Info, LayoutDashboard, Globe, HelpCircle, DollarSign, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import BrandLogo from './BrandLogo';
 
 const NAV_LINKS = [
-  { name: 'Features', href: '/#features', icon: Star },
   { name: 'How it works', href: '/#how-it-works', icon: Info },
-  { name: 'Verify Document', href: '/verify', icon: Info },
+  { name: 'Pricing', href: '/pricing', icon: DollarSign },
+  { name: 'Explore', href: '/explore', icon: Globe },
+  { name: 'Verify', href: '/verify', icon: ShieldCheck },
+  { name: 'FAQ', href: '/faq', icon: HelpCircle },
 ];
 
 export default function Navbar() {
