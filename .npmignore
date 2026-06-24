@@ -12,6 +12,14 @@ node_modules/
 .env.*
 !.env.example
 
+private/
+**/*.csv
+*.key
+*.pem
+.npmrc
+settings/
+deployments/
+
 # Logs
 npm-debug.log*
 yarn-debug.log*
@@ -25,7 +33,7 @@ Thumbs.db
 # Git
 .git/
 .gitignore
-
+scripts/
 # Config files (optional, keep if needed for build)
 #.eslintrc.json
 #tsconfig.json
