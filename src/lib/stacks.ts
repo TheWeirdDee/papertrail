@@ -3,7 +3,13 @@
  * Handles wallet authentication, generic contract calls, and network status
  */
 
-import { APP_CONFIG, REGISTRATION_FEE_MICROSTX } from './config';
+import {
+  APP_CONFIG,
+  REGISTRATION_FEE_MICROSTX,
+  COSIGN_FEE_MICROSTX,
+  UPDATE_FEE_MICROSTX,
+  TRANSFER_FEE_MICROSTX,
+} from './config';
 import { toast } from 'react-hot-toast';
 // store is lazy-loaded to break circular dependency
 const getStore = () => require('./store').store;
@@ -478,6 +484,109 @@ export const revokeDocument = async ({
     functionArgs: [bufferCV(Buffer.from(hashHex, 'hex'))],
     postConditionMode: 'deny',
     postConditions: [],
+    onFinish,
+    onCancel,
+  });
+};
+
+/**
+ * Co-signs a document (any principal except owner). Cosigner pays 0.25 STX.
+ */
+export const coSignDocument = async ({
+  hashHex,
+  onFinish,
+  onCancel,
+}: {
+  hashHex: string;
+  onFinish?: (data: any) => void;
+  onCancel?: () => void;
+}) => {
+  const { bufferCV, Pc } = getTransactions();
+  const sender = localStorage.getItem('papertrail_user_address');
+  if (!sender || !isValidStacksAddress(sender)) {
+    throw new Error('Wallet not connected or invalid address');
+  }
+  await callContract({
+    contractAddress: APP_CONFIG.contractAddress,
+    contractName: APP_CONFIG.contractName,
+    functionName: 'co-sign-document',
+    functionArgs: [bufferCV(Buffer.from(hashHex, 'hex'))],
+    postConditionMode: 'deny',
+    postConditions: [Pc.principal(sender).willSendEq(COSIGN_FEE_MICROSTX).ustx()],
+    onFinish,
+    onCancel,
+  });
+};
+
+/**
+ * Updates a document's title and category (owner only). Owner pays 0.1 STX.
+ */
+export const updateDocument = async ({
+  hashHex,
+  title,
+  category,
+  onFinish,
+  onCancel,
+}: {
+  hashHex: string;
+  title: string;
+  category: number;
+  onFinish?: (data: any) => void;
+  onCancel?: () => void;
+}) => {
+  const { bufferCV, stringAsciiCV, uintCV, Pc } = getTransactions();
+  const sender = localStorage.getItem('papertrail_user_address');
+  if (!sender || !isValidStacksAddress(sender)) {
+    throw new Error('Wallet not connected or invalid address');
+  }
+  await callContract({
+    contractAddress: APP_CONFIG.contractAddress,
+    contractName: APP_CONFIG.contractName,
+    functionName: 'update-document',
+    functionArgs: [
+      bufferCV(Buffer.from(hashHex, 'hex')),
+      stringAsciiCV(title),
+      uintCV(BigInt(category)),
+    ],
+    postConditionMode: 'deny',
+    postConditions: [Pc.principal(sender).willSendEq(UPDATE_FEE_MICROSTX).ustx()],
+    onFinish,
+    onCancel,
+  });
+};
+
+/**
+ * Transfers document ownership to a new principal. Current owner pays 0.25 STX.
+ */
+export const transferDocument = async ({
+  hashHex,
+  newOwner,
+  onFinish,
+  onCancel,
+}: {
+  hashHex: string;
+  newOwner: string;
+  onFinish?: (data: any) => void;
+  onCancel?: () => void;
+}) => {
+  const { bufferCV, principalCV, Pc } = getTransactions();
+  const sender = localStorage.getItem('papertrail_user_address');
+  if (!sender || !isValidStacksAddress(sender)) {
+    throw new Error('Wallet not connected or invalid address');
+  }
+  if (!isValidStacksAddress(newOwner)) {
+    throw new Error('Invalid recipient address');
+  }
+  await callContract({
+    contractAddress: APP_CONFIG.contractAddress,
+    contractName: APP_CONFIG.contractName,
+    functionName: 'transfer-document',
+    functionArgs: [
+      bufferCV(Buffer.from(hashHex, 'hex')),
+      principalCV(newOwner),
+    ],
+    postConditionMode: 'deny',
+    postConditions: [Pc.principal(sender).willSendEq(TRANSFER_FEE_MICROSTX).ustx()],
     onFinish,
     onCancel,
   });

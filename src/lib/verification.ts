@@ -116,7 +116,11 @@ export async function getDocumentsByOwner(address: string): Promise<OwnerDocumen
   return results.filter((d): d is OwnerDocument => d !== null);
 }
 
-export type PlatformStats = { totalRegistrations: number; totalUniqueOwners: number };
+export type PlatformStats = {
+  totalRegistrations: number;
+  totalUniqueOwners: number;
+  totalStxCollected: number;
+};
 
 // Reads global platform stats from the contract's get-stats read function.
 export async function getStats(): Promise<PlatformStats> {
@@ -125,9 +129,35 @@ export async function getStats(): Promise<PlatformStats> {
     return {
       totalRegistrations: Number(value?.['total-registrations'] ?? 0),
       totalUniqueOwners: Number(value?.['total-unique-owners'] ?? 0),
+      totalStxCollected: Number(value?.['total-stx-collected'] ?? 0),
     };
   } catch {
-    return { totalRegistrations: 0, totalUniqueOwners: 0 };
+    return { totalRegistrations: 0, totalUniqueOwners: 0, totalStxCollected: 0 };
+  }
+}
+
+// Returns the number of co-signers for a document.
+export async function getCosignerCount(hashHex: string): Promise<number> {
+  try {
+    const value = await callRead('get-cosigner-count', [encodeClarityBuffer(hashHex)]);
+    return Number(value ?? 0);
+  } catch {
+    return 0;
+  }
+}
+
+// Returns whether a given principal has co-signed a document.
+export async function isCosigner(hashHex: string, cosigner: string): Promise<boolean> {
+  try {
+    const { principalCV, serializeCV } = await import('@stacks/transactions');
+    const cosignerArg = '0x' + serializeCV(principalCV(cosigner));
+    const value = await callRead('is-cosigner', [
+      encodeClarityBuffer(hashHex),
+      cosignerArg,
+    ]);
+    return Boolean(value);
+  } catch {
+    return false;
   }
 }
 
