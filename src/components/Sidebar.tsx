@@ -13,6 +13,7 @@ import {
   HelpCircle,
   DollarSign,
   ShieldCheck,
+
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
@@ -67,6 +68,22 @@ function NavLink({ href, icon: Icon, name, onClick }: {
     </Link>
   );
 }
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+  
+  const publicLinks = [
+    { name: 'Explore', href: '/explore', icon: Globe },
+    { name: 'Verify Document', href: '/verify', icon: Rss },
+  ];
+
+  const authLinks = [
+    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Register Document', href: '/register', icon: PlusCircle },
+    { name: 'Explore', href: '/explore', icon: Globe },
+    { name: 'Verify Document', href: '/verify', icon: Rss },
+    { name: 'Profile', href: `/profile/${address}`, icon: UserIcon },
+  ];
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { address, isConnected } = useSelector((state: RootState) => state.user);
