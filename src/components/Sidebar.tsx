@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
-  Rss,
   User as UserIcon,
   Settings,
   PlusCircle,
@@ -68,23 +67,6 @@ function NavLink({ href, icon: Icon, name, onClick }: {
     </Link>
   );
 }
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
-  
-  const publicLinks = [
-    { name: 'Explore', href: '/explore', icon: Globe },
-    { name: 'Verify Document', href: '/verify', icon: Rss },
-  ];
-
-  const authLinks = [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Register Document', href: '/register', icon: PlusCircle },
-    { name: 'Explore', href: '/explore', icon: Globe },
-    { name: 'Verify Document', href: '/verify', icon: Rss },
-    { name: 'Profile', href: `/profile/${address}`, icon: UserIcon },
-  ];
-
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { address, isConnected } = useSelector((state: RootState) => state.user);
   const [hasMounted, setHasMounted] = useState(false);
