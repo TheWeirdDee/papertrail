@@ -44,7 +44,7 @@ const PUBLIC_LINKS = [
 ];
 
 function NavLink({ href, icon: Icon, name, onClick }: {
-  href: string; icon: React.ElementType; name: string; onClick: () => void;
+  href: string; icon: React.ComponentType<{ className?: string }>; name: string; onClick: () => void;
 }) {
   const pathname = usePathname();
   const isActive = pathname === href || (href !== '/' && pathname.startsWith(href) && !href.includes('#'));
