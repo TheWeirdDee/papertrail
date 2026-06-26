@@ -73,7 +73,7 @@ export default function ExploreContent() {
   }, [fetchDocs]);
 
   return (
-    <div className="p-6 md:p-10 space-y-8 max-w-6xl">
+    <div className="mx-auto w-full max-w-6xl px-6 md:px-10 py-10 space-y-8">
       {/* Header */}
       <div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
