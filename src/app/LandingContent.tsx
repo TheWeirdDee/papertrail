@@ -155,7 +155,7 @@ export default function LandingContent() {
   const stxCollected = (stats.totalStxCollected / 1_000_000).toFixed(1);
 
   return (
-    <div className="bg-[#050505] min-h-screen text-white overflow-x-hidden pb-12 md:pb-32">
+    <div className="bg-[#050505] min-h-screen text-white overflow-x-clip pb-12 md:pb-32">
       <Navbar />
 
       {/* Hero */}
