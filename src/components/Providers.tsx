@@ -37,8 +37,6 @@ function AuthHydrator({
     const effectiveAddress = initialUser?.address || storedAddress;
     
     if (effectiveAddress) {
-      console.log('--- HYDRATOR: Recovering session for', effectiveAddress);
-      
       if (storedToken) {
         dispatch(setSessionToken(storedToken));
       }
@@ -68,9 +66,8 @@ function AuthHydrator({
       }
       
       dispatch(fetchOnChainStats(effectiveAddress) as any);
-    } else {
-      console.log('--- HYDRATOR: No active session found ---');
     }
+
   }, [dispatch, initialUser]);
 
   return <>{children}</>;
