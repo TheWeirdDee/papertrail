@@ -1,8 +1,3 @@
-/**
- * File Upload Endpoint
- * Handles secure file uploads with validation
- */
-
 import { NextRequest, NextResponse } from 'next/server';
 import { getServiceRoleClient } from '@/lib/supabase';
 import { getSecurityHeaders, checkRateLimit } from '@/lib/utils/security';
@@ -15,7 +10,6 @@ const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
 
 export async function POST(req: NextRequest) {
   try {
-    // Rate limiting
     const clientIp = req.headers.get('x-forwarded-for') || 'unknown';
     if (!checkRateLimit(clientIp, 20, 60000)) {
       return NextResponse.json(
@@ -24,12 +18,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Parse form data
     const formData = await req.formData();
     const file = formData.get('file') as File;
     const bucket = (formData.get('bucket') as string) || 'media';
 
-    // Validate file
     if (!file) {
       return NextResponse.json(
         createErrorResponse(400, 'No file provided', 'NO_FILE'),
@@ -37,7 +29,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Validate bucket
     if (!ALLOWED_BUCKETS.includes(bucket)) {
       return NextResponse.json(
         createErrorResponse(400, 'Invalid bucket', 'INVALID_BUCKET'),
@@ -45,7 +36,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Validate file size
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
         createErrorResponse(400, 'File exceeds 5MB limit', 'FILE_TOO_LARGE'),
@@ -53,7 +43,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Validate MIME type
     if (!ALLOWED_MIME_TYPES.includes(file.type)) {
       return NextResponse.json(
         createErrorResponse(400, 'Invalid file type', 'INVALID_FILE_TYPE'),
@@ -61,7 +50,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Validate file extension
     const fileExt = file.name.split('.').pop()?.toLowerCase();
     if (!fileExt || !ALLOWED_EXTENSIONS.includes(fileExt)) {
       return NextResponse.json(
@@ -70,13 +58,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Generate safe filename
     const randomId = Math.random().toString(36).substring(2, 15);
     const timestamp = Date.now();
     const fileName = `${timestamp}-${randomId}.${fileExt}`;
     const filePath = `${fileName}`;
 
-    // Upload to Supabase Storage
     try {
       const supabase = getServiceRoleClient();
       const arrayBuffer = await file.arrayBuffer();
@@ -97,7 +83,6 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from(bucket)
         .getPublicUrl(data.path);
