@@ -1,8 +1,3 @@
-/**
- * User Profile Sync Endpoint
- * Synchronizes user data from blockchain with database
- */
-
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { getSecurityHeaders, checkRateLimit } from '@/lib/utils/security';
@@ -11,7 +6,6 @@ import { isValidStacksAddress } from '@/lib/utils/validation';
 
 export async function POST(req: NextRequest) {
   try {
-    // Rate limiting
     const clientIp = req.headers.get('x-forwarded-for') || 'unknown';
     if (!checkRateLimit(clientIp, 50, 60000)) {
       return NextResponse.json(
@@ -22,7 +16,6 @@ export async function POST(req: NextRequest) {
 
     const { address } = await req.json();
 
-    // Validate address
     if (!address || !isValidStacksAddress(address)) {
       return NextResponse.json(
         createErrorResponse(400, 'Invalid Stacks address', 'INVALID_ADDRESS'),
@@ -30,7 +23,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Fetch user profile from database
     try {
       const { data: profile, error: fetchError } = await supabase
         .from('profiles')
@@ -38,7 +30,6 @@ export async function POST(req: NextRequest) {
         .eq('address', address)
         .single();
 
-      // Record not found is OK, will create new
       if (fetchError && fetchError.code !== 'PGRST116') {
         throw fetchError;
       }
