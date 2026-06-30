@@ -1,8 +1,3 @@
-/**
- * Profile Update Endpoint
- * Updates user profile information with validation and authentication
- */
-
 import { NextRequest, NextResponse } from 'next/server';
 import { getServiceRoleClient } from '@/lib/supabase';
 import { getSecurityHeaders, checkRateLimit, extractBearerToken } from '@/lib/utils/security';
@@ -15,7 +10,6 @@ const MAX_USERNAME_LENGTH = 32;
 
 export async function POST(req: NextRequest) {
   try {
-    // Rate limiting
     const clientIp = req.headers.get('x-forwarded-for') || 'unknown';
     if (!checkRateLimit(clientIp, 30, 60000)) {
       return NextResponse.json(
@@ -24,7 +18,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Authenticate user
     const authHeader = req.headers.get('Authorization');
     const token = extractBearerToken(authHeader || undefined);
 
@@ -35,7 +28,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verify JWT token
     let sessionAddress: string | null = null;
     try {
       const secret = process.env.LOCAL_SESSION_SECRET;
@@ -58,7 +50,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Parse and validate request body
     const {
       username,
       bio,
@@ -66,7 +57,6 @@ export async function POST(req: NextRequest) {
       website
     } = await req.json();
 
-    // Validate optional fields
     if (username !== undefined && username !== null) {
       if (!isValidUsername(username)) {
         return NextResponse.json(
@@ -110,7 +100,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Update profile
     try {
       const supabase = getServiceRoleClient();
       const updateData: any = {
@@ -118,7 +107,6 @@ export async function POST(req: NextRequest) {
         updated_at: new Date().toISOString()
       };
 
-      // Only include fields that were provided
       if (username !== undefined) updateData.username = username;
       if (bio !== undefined) updateData.bio = bio ? sanitizeInput(bio) : bio;
       if (avatar_url !== undefined) updateData.avatar_url = avatar_url;
