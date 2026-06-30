@@ -1,8 +1,3 @@
-/**
- * Stacks Blockchain Integration Layer
- * Handles wallet authentication, generic contract calls, and network status
- */
-
 import {
   APP_CONFIG,
   REGISTRATION_FEE_MICROSTX,
@@ -36,11 +31,6 @@ const getConnect = () => {
   return require('@stacks/connect');
 };
 
-/**
- * Converts Stacks address to legacy format
- * @param stxAddress - The Stacks address to convert
- * @returns Legacy user data format
- */
 const toLegacyUserData = (stxAddress: string) => {
   if (!isValidStacksAddress(stxAddress)) {
     throw new Error('Invalid Stacks address format');
@@ -59,10 +49,6 @@ const toLegacyUserData = (stxAddress: string) => {
   };
 };
 
-/**
- * Gets or creates user session instance
- * @returns UserSession instance
- */
 export const getUserSession = () => {
   if (typeof window === 'undefined') return null;
   
@@ -80,10 +66,6 @@ export const getUserSession = () => {
   return userSessionInstance;
 };
 
-/**
- * Authenticates user with wallet
- * @returns User's STX address or null
- */
 export const authenticate = async (): Promise<string | null> => {
   if (typeof window === 'undefined') return null;
   
@@ -116,10 +98,6 @@ export const authenticate = async (): Promise<string | null> => {
   }
 };
 
-/**
- * Gets stored user data
- * @returns User data or null
- */
 export const getUserData = () => {
   if (typeof window === 'undefined') return null;
 
@@ -132,10 +110,6 @@ export const getUserData = () => {
   return null;
 };
 
-/**
- * Fetches current block height from blockchain
- * @returns Current block height or 0
- */
 export const getOnChainBlockHeight = async (): Promise<number> => {
   if (typeof window === 'undefined') return 0;
 
@@ -161,10 +135,6 @@ export const getOnChainBlockHeight = async (): Promise<number> => {
   }
 };
 
-/**
- * Calls a smart contract function
- * @param options - Contract call options
- */
 export const callContract = async (options: any) => {
   if (typeof window === 'undefined') return;
 
@@ -236,10 +206,6 @@ export const callContract = async (options: any) => {
   }
 };
 
-/**
- * Polls transaction status until completion
- * @param txId - Transaction ID to poll
- */
 async function pollTransactionStatus(txId: string) {
   if (!isValidStacksAddress(txId) && !/^[a-f0-9]{64}$/i.test(txId)) {
     logError('pollTransactionStatus', new Error('Invalid txId format'), { txId });
@@ -299,11 +265,6 @@ async function pollTransactionStatus(txId: string) {
   check();
 }
 
-/**
- * Signs in user with wallet signature
- * @param address - User's Stacks address
- * @returns Auth token if successful
- */
 export const signInWithWallet = async (address: string): Promise<{ token: string } | null> => {
   if (typeof window === 'undefined') return null;
 
@@ -396,11 +357,6 @@ export const signInWithWallet = async (address: string): Promise<{ token: string
 
 // --- PaperTrail contract functions ---
 
-/**
- * Fetches a wallet's STX balance in microSTX.
- * @param address - Stacks address to query
- * @returns Balance in microSTX, or null if the fetch fails (caller must handle null)
- */
 export const getStxBalance = async (address: string): Promise<number | null> => {
   if (!isValidStacksAddress(address)) return null;
 
@@ -430,10 +386,7 @@ type RegisterArgs = {
   onCancel?: () => void;
 };
 
-/**
- * Registers a document hash on-chain. Adds an explicit STX post-condition so the
- * wallet can only spend exactly the registration fee.
- */
+// Adds a strict STX post-condition so the wallet can only spend exactly the registration fee.
 export const registerDocument = async ({
   hashHex,
   title,
@@ -463,10 +416,6 @@ export const registerDocument = async ({
   });
 };
 
-/**
- * Revokes a previously registered document (owner only). No STX movement,
- * so an empty deny post-condition set is sufficient.
- */
 export const revokeDocument = async ({
   hashHex,
   onFinish,
@@ -489,9 +438,6 @@ export const revokeDocument = async ({
   });
 };
 
-/**
- * Co-signs a document (any principal except owner). Cosigner pays 0.25 STX.
- */
 export const coSignDocument = async ({
   hashHex,
   onFinish,
@@ -518,9 +464,6 @@ export const coSignDocument = async ({
   });
 };
 
-/**
- * Updates a document's title and category (owner only). Owner pays 0.1 STX.
- */
 export const updateDocument = async ({
   hashHex,
   title,
@@ -555,9 +498,6 @@ export const updateDocument = async ({
   });
 };
 
-/**
- * Transfers document ownership to a new principal. Current owner pays 0.25 STX.
- */
 export const transferDocument = async ({
   hashHex,
   newOwner,
