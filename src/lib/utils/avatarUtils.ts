@@ -1,7 +1,3 @@
-/**
- * Deterministic color generation based on user address.
- * Focuses on Blue, Cyan, and Silver palettes as requested.
- */
 export function getProfileGradient(address: string | null): string {
   if (!address) return 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)';
   
@@ -19,9 +15,6 @@ export function getProfileGradient(address: string | null): string {
   return variants[seed % variants.length];
 }
 
-/**
- * Gets initials from the address (first 2 chars)
- */
 export function getAddressInitials(address: string | null): string {
   if (!address) return 'GM';
   return address.substring(0, 2).toUpperCase();
