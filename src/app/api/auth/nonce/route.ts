@@ -1,9 +1,3 @@
-/**
- * Nonce Generation Endpoint
- * Generates secure nonce for wallet signature verification
- * Stores in database with TTL for validation
- */
-
 import { NextRequest, NextResponse } from 'next/server';
 import { getServiceRoleClient } from '@/lib/supabase';
 import { getSecurityHeaders, checkRateLimit } from '@/lib/utils/security';
@@ -13,7 +7,6 @@ import crypto from 'crypto';
 
 export async function POST(req: NextRequest) {
   try {
-    // Rate limiting
     const clientIp = req.headers.get('x-forwarded-for') || 'unknown';
     if (!checkRateLimit(clientIp, 30, 60000)) {
       return NextResponse.json(
@@ -25,7 +18,6 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { address } = body;
 
-    // Validate address
     if (!address || typeof address !== 'string') {
       return NextResponse.json(
         createErrorResponse(400, 'Address is required', 'INVALID_REQUEST'),
@@ -40,11 +32,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Generate nonce
     const nonce = crypto.randomBytes(16).toString('hex');
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
 
-    // Store in database
     try {
       const supabase = getServiceRoleClient();
 
