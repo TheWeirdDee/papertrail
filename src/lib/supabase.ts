@@ -14,24 +14,12 @@ if (!supabaseUrl || supabaseUrl.includes('placeholder') || !supabaseUrl.startsWi
 if (!supabaseAnonKey) {
   logWarn('supabase', 'NEXT_PUBLIC_SUPABASE_ANON_KEY is missing; some features may not work in browser');
 }
-// Validate environment at load time
-if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
-  console.error('CRITICAL: NEXT_PUBLIC_SUPABASE_URL is missing or invalid');
-}
-
-if (!supabaseAnonKey || supabaseAnonKey.includes('placeholder')) {
-  console.error('CRITICAL: NEXT_PUBLIC_SUPABASE_ANON_KEY is missing or invalid');
-}
 
 export const supabase = createClient(
   supabaseUrl || 'https://missing-supabase-url.co',
   supabaseAnonKey || 'missing-key'
 );
 
-/**
- * Gets authenticated client for browser-side requests
- * Validates stored token before using it
- */
 export const getSupaClient = () => {
   if (typeof window === 'undefined') return supabase;
 
@@ -50,10 +38,6 @@ export const getSupaClient = () => {
   });
 };
 
-/**
- * Gets service role client for server-only operations
- * Must only be called from server-side code
- */
 export const getServiceRoleClient = () => {
   if (typeof window !== 'undefined') {
     throw new Error('Service role client cannot be used from client-side code');
@@ -73,32 +57,24 @@ export const getServiceRoleClient = () => {
   });
 };
 
-/**
- * Uploads file to media/avatars bucket via secure API proxy
- * Validates file before upload
- */
 export async function uploadFile(
   bucket: 'media' | 'avatars',
   file: File
 ): Promise<string | null> {
   try {
-    // Validate bucket name
     if (!['media', 'avatars'].includes(bucket)) {
       throw new Error('Invalid bucket name');
     }
 
-    // Validate file
     if (!file || file.size === 0) {
       throw new Error('File is required');
     }
 
-    // Check file size (max 5MB)
     const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
       throw new Error('File exceeds maximum size of 5MB');
     }
 
-    // Validate file type
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
       throw new Error('Invalid file type');
