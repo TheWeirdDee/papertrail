@@ -3,7 +3,6 @@ import { getServiceRoleClient, supabase } from '@/lib/supabase';
 import { getSecurityHeaders } from '@/lib/utils/security';
 import { isValidStacksAddress } from '@/lib/utils/validation';
 
-// GET — fetch a single cached document by hash (used by document detail page for description)
 export async function GET(req: NextRequest) {
   try {
     const hash = req.nextUrl.searchParams.get('hash');
@@ -36,7 +35,6 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST — write a newly registered document into the cache
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -89,7 +87,6 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// PATCH — mark a cached document as revoked
 export async function PATCH(req: NextRequest) {
   try {
     const { hash, owner, isRevoked } = await req.json();
