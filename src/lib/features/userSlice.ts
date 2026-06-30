@@ -1,8 +1,3 @@
-/**
- * Redux User Slice
- * Manages user authentication state, profile data, and session parameters
- */
-
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { getUserSession, getOnChainBlockHeight } from '../stacks';
 import { supabase } from '../supabase';
@@ -23,27 +18,18 @@ interface UserState {
   website: string | null;
 }
 
-/**
- * Safely retrieves and validates address from localStorage
- */
 const getInitialAddress = () => {
   if (typeof window === 'undefined') return null;
   const address = localStorage.getItem('papertrail_user_address');
   return address && isValidStacksAddress(address) ? address : null;
 };
 
-/**
- * Safely retrieves username with length validation
- */
 const getInitialUsername = (address: string | null) => {
   if (typeof window === 'undefined' || !address) return null;
   const username = localStorage.getItem(`username_${address}`);
   return username && username.length > 0 && username.length <= 32 ? username : null;
 };
 
-/**
- * Safely retrieves and validates session token JWT format
- */
 const getInitialSessionToken = () => {
   if (typeof window === 'undefined') return null;
   const token = localStorage.getItem('papertrail_session_token');
@@ -154,8 +140,7 @@ const userSlice = createSlice({
         }
       } 
       else if (state.username && !state.username.startsWith('ST')) {
-        // Keep current username
-      } 
+        }
       else if (typeof window !== 'undefined' && state.address) {
         const cached = localStorage.getItem(`username_${state.address}`);
         if (cached) {
@@ -243,7 +228,7 @@ export const fetchOnChainStats = (address: string) => async (dispatch: any) => {
       }
     }
   } catch (err) {
-    console.error('Fetch error:', err);
+    logError('userSlice.fetchOnChainStats', 'Fetch failed', undefined, err instanceof Error ? err : undefined);
   } finally {
     dispatch(userSlice.actions.setLoading(false));
   }
