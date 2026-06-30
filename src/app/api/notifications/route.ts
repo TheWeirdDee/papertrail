@@ -16,14 +16,12 @@ function client() {
   }
 }
 
-// Returns true when the error indicates the notifications table doesn't exist yet,
-// so the UI can degrade gracefully instead of erroring.
+// True when the table doesn't exist yet — allows graceful degradation before migration runs.
 function isMissingTable(err: any): boolean {
   const msg = String(err?.message || err?.code || '').toLowerCase();
   return msg.includes('does not exist') || err?.code === '42p01' || msg.includes('not found');
 }
 
-// GET /api/notifications?address=SP... — recent notifications for a wallet.
 export async function GET(req: NextRequest) {
   try {
     const address = req.nextUrl.searchParams.get('address');
@@ -52,7 +50,6 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST /api/notifications — create a notification (called after register/revoke).
 export async function POST(req: NextRequest) {
   try {
     const { address, type, title, body } = await req.json();
@@ -89,7 +86,6 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// PATCH /api/notifications — mark all of a wallet's notifications as read.
 export async function PATCH(req: NextRequest) {
   try {
     const { address } = await req.json();
