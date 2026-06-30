@@ -33,7 +33,6 @@ const txSlice = createSlice({
         return;
       }
 
-      // prevent duplicates
       if (state.transactions.find(t => t.txId === tx.txId)) {
         logInfo('txSlice', 'Duplicate transaction ignored', { txId: tx.txId });
         return;
@@ -44,7 +43,6 @@ const txSlice = createSlice({
         state.pendingCount += 1;
       }
 
-      // enforce max list size
       if (state.transactions.length > MAX_TRANSACTIONS) {
         state.transactions = state.transactions.slice(0, MAX_TRANSACTIONS);
       }
