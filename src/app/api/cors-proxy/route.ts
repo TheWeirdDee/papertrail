@@ -1,15 +1,9 @@
-/**
- * CORS Proxy Endpoint
- * Securely proxies requests to external APIs like Hiro to handle CORS issues
- */
-
 import { NextRequest, NextResponse } from 'next/server';
 import { getSecurityHeaders, isOriginAllowed, isHiroEndpointAllowed, checkRateLimit } from '@/lib/utils/security';
 import { createErrorResponse, createSuccessResponse, logError } from '@/lib/utils/errors';
 
 export async function POST(request: NextRequest) {
   try {
-    // Check origin
     const origin = request.headers.get('origin') || undefined;
     if (!isOriginAllowed(origin)) {
       return NextResponse.json(
@@ -18,7 +12,6 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Rate limiting
     const clientIp = request.headers.get('x-forwarded-for') || 'unknown';
     if (!checkRateLimit(clientIp, 100, 60000)) {
       return NextResponse.json(
@@ -27,11 +20,9 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Parse request body
     const body = await request.json();
     const { url, method = 'GET', headers: customHeaders = {} } = body;
     
-    // Validate URL
     if (!url || typeof url !== 'string') {
       return NextResponse.json(
         createErrorResponse(400, 'URL is required', 'INVALID_REQUEST'),
@@ -39,7 +30,6 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Validate endpoint is allowed (Hiro endpoints only)
     if (!isHiroEndpointAllowed(url)) {
       logError('CORS_PROXY', new Error('Unauthorized endpoint'), { url, origin });
       return NextResponse.json(
@@ -48,7 +38,6 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Validate method
     const allowedMethods = ['GET', 'POST'];
     if (!allowedMethods.includes(method.toUpperCase())) {
       return NextResponse.json(
@@ -57,13 +46,10 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Prepare headers (sanitize custom headers)
     const proxyHeaders: Record<string, string> = {
       'User-Agent': 'PaperTrail/1.0',
       'Accept': 'application/json',
     };
-    
-    // Only allow safe headers to be passed through
     const allowedHeaderNames = ['content-type', 'authorization'];
     Object.entries(customHeaders).forEach(([key, value]) => {
       if (allowedHeaderNames.includes(key.toLowerCase()) && typeof value === 'string') {
@@ -71,15 +57,13 @@ export async function POST(request: NextRequest) {
       }
     });
     
-    // Make the proxied request
     const response = await fetch(url, {
       method: method.toUpperCase(),
       headers: proxyHeaders,
       body: method.toUpperCase() === 'POST' ? JSON.stringify(body.data || {}) : undefined,
-      signal: AbortSignal.timeout(30000), // 30 second timeout
+      signal: AbortSignal.timeout(30000),
     });
     
-    // Check response status
     if (!response.ok) {
       logError('CORS_PROXY', new Error(`Upstream error: ${response.status}`), {
         url,
@@ -96,7 +80,6 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Get response data
     let data;
     const contentType = response.headers.get('content-type');
     if (contentType?.includes('application/json')) {
