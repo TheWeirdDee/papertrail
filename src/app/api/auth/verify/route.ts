@@ -1,9 +1,3 @@
-/**
- * Signature Verification Endpoint
- * Verifies wallet signature and issues JWT token
- * Implements security validation and rate limiting
- */
-
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyMessageSignatureRsv } from '@stacks/encryption';
 import { getAddressFromPublicKey } from '@stacks/transactions';
@@ -13,9 +7,6 @@ import { createErrorResponse, createSuccessResponse, logError } from '@/lib/util
 import { isValidStacksAddress } from '@/lib/utils/validation';
 import * as jose from 'jose';
 
-/**
- * Validates JWT secret is configured
- */
 function getJwtSecret(): string {
   const secret = process.env.LOCAL_SESSION_SECRET;
   if (!secret || secret === 'placeholder' || secret.length < 32) {
@@ -26,7 +17,6 @@ function getJwtSecret(): string {
 
 export async function POST(req: NextRequest) {
   try {
-    // Rate limiting
     const clientIp = req.headers.get('x-forwarded-for') || 'unknown';
     if (!checkRateLimit(clientIp, 20, 60000)) {
       return NextResponse.json(
@@ -38,7 +28,6 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { address, signature, publicKey } = body;
 
-    // Validate required fields
     if (!address || !signature || !publicKey) {
       return NextResponse.json(
         createErrorResponse(400, 'Missing required fields (address, signature, publicKey)', 'INVALID_REQUEST'),
@@ -46,7 +35,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Validate address format
     if (!isValidStacksAddress(address)) {
       return NextResponse.json(
         createErrorResponse(400, 'Invalid Stacks address', 'INVALID_ADDRESS'),
@@ -54,7 +42,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Validate signature and publicKey are strings
     if (typeof signature !== 'string' || typeof publicKey !== 'string') {
       return NextResponse.json(
         createErrorResponse(400, 'Signature and publicKey must be strings', 'INVALID_FORMAT'),
@@ -62,7 +49,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verify address derivation
     const network = (process.env.NEXT_PUBLIC_STACKS_NETWORK || 'testnet') as any;
     let derivedAddress: string;
 
@@ -87,7 +73,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Retrieve nonce from database
     let nonceData: any;
     try {
       const supabase = getServiceRoleClient();
@@ -116,7 +101,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verify signature
     const message = `Sign in to PaperTrail\nNonce: ${nonceData.nonce}`;
     let isValid: boolean;
 
@@ -142,7 +126,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Clean up used nonce
     try {
       const supabase = getServiceRoleClient();
       await supabase.from('auth_nonces').delete().eq('address', address);
@@ -150,7 +133,6 @@ export async function POST(req: NextRequest) {
       logError('VERIFY - nonce cleanup', error, { address });
     }
 
-    // Issue JWT token
     let token: string;
     try {
       const secret = getJwtSecret();
@@ -174,7 +156,6 @@ export async function POST(req: NextRequest) {
       { status: 200, headers: { ...getSecurityHeaders() } }
     );
 
-    // Set secure cookie
     response.cookies.set('papertrail_session_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
